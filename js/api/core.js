@@ -52,7 +52,7 @@ export class FFLogsAPICore {
         const data = await response.json();
         this.accessToken = data.access_token;
 
-        // Token expires in 'expires_in' seconds
+        // Token expires in 'expires_in' seconds (typically 360 days)
         this.tokenExpiry = Date.now() + (data.expires_in * 1000);
 
         // Cache the token
