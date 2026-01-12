@@ -1,0 +1,156 @@
+/**
+ * Table and results display styles
+ */
+
+/* Results Table */
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--bg-secondary);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.results-table thead {
+    background-color: var(--bg-tertiary);
+}
+
+.results-table thead th {
+    padding: 0.75rem;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.results-table tbody td {
+    padding: 0.5rem 0.5rem;
+    text-align: center;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+}
+
+.results-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.results-table tbody tr:hover {
+    background-color: var(--bg-tertiary);
+    cursor: pointer;
+}
+
+/* Raid Name Cell */
+.raid-name-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.raid-name {
+    font-weight: 500;
+    font-size: 0.8rem;
+}
+
+/* Date column */
+.results-table tbody td:nth-child(3) {
+    color: var(--text-secondary);
+}
+
+/* Rank column */
+.results-table tbody td:nth-child(6) {
+    color: var(--text-secondary);
+}
+
+/* Tooltip for table headers */
+.tooltip-header {
+    position: relative;
+    cursor: help;
+}
+
+.header-tooltip {
+    display: none;
+    position: absolute;
+    z-index: 1000;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem;
+    min-width: 200px;
+    max-width: 300px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    white-space: normal;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: normal;
+    color: var(--text-secondary);
+    text-align: left;
+}
+
+.tooltip-header:hover .header-tooltip {
+    display: block;
+}
+
+/* Row hover tooltip */
+.raid-row {
+    position: relative;
+}
+
+.row-tooltip {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    min-width: 250px;
+    max-width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    white-space: normal;
+    max-height: 80vh;
+    overflow-y: auto;
+    pointer-events: none;
+}
+
+.raid-row:hover .row-tooltip {
+    display: block;
+}
+
+/* Tooltip */
+.tooltip-content {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    min-width: 250px;
+    max-width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    white-space: normal;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.party-cell:hover .tooltip-content {
+    display: block;
+}
+
+.party-member {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0;
+}
+
+.member-name {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
