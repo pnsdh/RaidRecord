@@ -34,6 +34,9 @@ export class App {
             raidSelectionModal: this.raidSelectionModal
         });
 
+        // Load last search
+        this.loadLastSearch();
+
         // Check credentials
         this.checkCredentials();
     }
@@ -79,6 +82,23 @@ export class App {
     }
 
     /**
+     * Load last search from storage
+     */
+    loadLastSearch() {
+        const lastCharacter = localStorage.getItem(STORAGE_KEYS.LAST_SEARCH);
+        if (lastCharacter) {
+            this.elements.searchInput.placeholder = lastCharacter;
+        }
+    }
+
+    /**
+     * Save last search to storage
+     */
+    saveLastSearch(characterName) {
+        localStorage.setItem(STORAGE_KEYS.LAST_SEARCH, characterName);
+    }
+
+    /**
      * Handle character search
      */
     async handleSearch() {
@@ -91,8 +111,13 @@ export class App {
             return;
         }
 
-        const characterName = this.elements.searchInput.value.trim();
+        let characterName = this.elements.searchInput.value.trim();
         const serverName = this.elements.serverSelect.value;
+
+        // If no character name entered, use last search
+        if (!characterName) {
+            characterName = localStorage.getItem(STORAGE_KEYS.LAST_SEARCH) || '';
+        }
 
         if (!characterName) {
             alert('캐릭터명을 입력해주세요.');
@@ -145,6 +170,9 @@ export class App {
 
             // Render results
             this.ui.renderResults(character, sortedHistory);
+
+            // Save last search
+            this.saveLastSearch(characterName);
 
             // Update API usage after all queries
             this.updateApiUsage();

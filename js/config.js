@@ -16,7 +16,8 @@ export const STORAGE_KEYS = {
     SERVER: 'raidrecord_server',
     ACCESS_TOKEN: 'raidrecord_access_token',
     TOKEN_EXPIRY: 'raidrecord_token_expiry',
-    SELECTED_RAIDS: 'raidrecord_selected_raids'
+    SELECTED_RAIDS: 'raidrecord_selected_raids',
+    LAST_SEARCH: 'raidrecord_last_search'
 };
 
 // FFLogs API configuration
