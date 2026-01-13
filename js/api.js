@@ -41,12 +41,8 @@ export class FFLogsAPI extends FFLogsAPICore {
         return this.characterAPI.getCharacterEncounterParses(characterId, encounterId, difficulty, partition);
     }
 
-    async getEarliestClear(characterId, zoneId, encounterId, difficulty, partition) {
-        return this.characterAPI.getEarliestClear(characterId, zoneId, encounterId, difficulty, partition);
-    }
-
-    async getAllStarPoints(characterId, zoneId, partition) {
-        return this.characterAPI.getAllStarPoints(characterId, zoneId, partition);
+    async getCombinedTierData(characterId, zoneId, encounterId, difficulty, partition) {
+        return this.characterAPI.getCombinedTierData(characterId, zoneId, encounterId, difficulty, partition);
     }
 
     /**

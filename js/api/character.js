@@ -103,46 +103,28 @@ export class CharacterAPI {
     }
 
     /**
-     * Get character's earliest clear for a specific encounter using encounter rankings
+     * Get combined data for a tier (rankings + encounter parses + all-star) in one query
      */
-    async getEarliestClear(characterId, zoneId, encounterId, difficulty, partition) {
-        // First, get basic ranking data to confirm there's a clear
-        const rankings = await this.getCharacterRankings(characterId, zoneId, difficulty, partition);
-
-        if (!rankings) {
-            return null;
-        }
-
-        const rankingsArray = rankings.rankings || [];
-        const encounterRanking = rankingsArray.find(r => r.encounter && r.encounter.id === encounterId);
-
-        if (!encounterRanking) {
-            return null;
-        }
-
-        // Now get all parses for this specific encounter to find the earliest
-        const encounterParses = await this.getCharacterEncounterParses(characterId, encounterId, difficulty, partition);
-
-        if (!encounterParses || encounterParses.length === 0) {
-            // Fall back to ranking data
-            return encounterRanking;
-        }
-
-        // Sort by date (earliest first)
-        encounterParses.sort((a, b) => a.startTime - b.startTime);
-
-        return encounterParses[0];
-    }
-
-    /**
-     * Get all-star points for a character in a zone
-     */
-    async getAllStarPoints(characterId, zoneId, partition) {
+    async getCombinedTierData(characterId, zoneId, encounterId, difficulty, partition) {
         const queryString = `
-            query($characterId: Int!, $zoneId: Int!, $partition: Int) {
+            query($characterId: Int!, $zoneId: Int!, $encounterId: Int!, $difficulty: Int, $partition: Int) {
                 characterData {
                     character(id: $characterId) {
-                        zoneRankings(zoneID: $zoneId, partition: $partition)
+                        zoneRankingsWithDifficulty: zoneRankings(
+                            zoneID: $zoneId,
+                            difficulty: $difficulty,
+                            partition: $partition
+                        )
+                        encounterRankings(
+                            encounterID: $encounterId,
+                            difficulty: $difficulty,
+                            partition: $partition
+                        )
+                        allStarRankings: zoneRankings(
+                            zoneID: $zoneId,
+                            difficulty: $difficulty,
+                            partition: $partition
+                        )
                     }
                 }
             }
@@ -151,25 +133,56 @@ export class CharacterAPI {
         const data = await this.query(queryString, {
             characterId,
             zoneId,
+            encounterId,
+            difficulty,
             partition
         });
 
-        const zoneRankings = data.characterData.character.zoneRankings;
+        const character = data.characterData.character;
 
-        // zoneRankings is a JSON object, parse it
+        // Extract earliest clear using existing logic
+        const zoneRankings = character.zoneRankingsWithDifficulty;
+        const encounterParses = character.encounterRankings?.ranks || [];
+
+        let earliestClear = null;
         if (zoneRankings) {
-            // The zoneRankings object contains allStars array
-            const allStars = zoneRankings.allStars || [];
+            const rankingsArray = zoneRankings.rankings || [];
+            const encounterRanking = rankingsArray.find(r => r.encounter?.id === encounterId);
 
+            if (encounterRanking) {
+                if (encounterParses.length > 0) {
+                    // Sort by date (earliest first)
+                    encounterParses.sort((a, b) => a.startTime - b.startTime);
+                    earliestClear = encounterParses[0];
+                } else {
+                    // Fall back to ranking data
+                    earliestClear = encounterRanking;
+                }
+            }
+        }
+
+        // Extract all-star data (use highest points if multiple jobs)
+        const allStarRankings = character.allStarRankings;
+        let allStarData = { points: 0, rank: null, total: null };
+        if (allStarRankings) {
+            const allStars = allStarRankings.allStars || [];
             if (allStars.length > 0) {
-                return {
-                    points: allStars[0].points || 0,
-                    rank: allStars[0].rank || null,
-                    total: allStars[0].total || null
+                // Find the entry with highest points
+                const bestAllStar = allStars.reduce((best, current) => {
+                    return (current.points || 0) > (best.points || 0) ? current : best;
+                }, allStars[0]);
+
+                allStarData = {
+                    points: bestAllStar.points || 0,
+                    rank: bestAllStar.rank || null,
+                    total: bestAllStar.total || null
                 };
             }
         }
 
-        return { points: 0, rank: null, total: null };
+        return {
+            earliestClear,
+            allStarData
+        };
     }
 }

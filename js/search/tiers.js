@@ -17,8 +17,8 @@ export async function getTierClearData(api, characterId, tier) {
         return null;
     }
 
-    // Get the earliest clear for this encounter
-    const earliestClear = await api.getEarliestClear(
+    // Get combined data (earliest clear + all-star) in one query
+    const combinedData = await api.getCombinedTierData(
         characterId,
         tier.zoneId,
         finalEncounterId,
@@ -26,16 +26,12 @@ export async function getTierClearData(api, characterId, tier) {
         tier.partition
     );
 
+    const earliestClear = combinedData.earliestClear;
+    const allStarData = combinedData.allStarData;
+
     if (!earliestClear) {
         return null;
     }
-
-    // Get all-star data
-    const allStarData = await api.getAllStarPoints(
-        characterId,
-        tier.zoneId,
-        tier.partition
-    );
 
     // Extract report information from the parse record
     const reportCode = earliestClear.report?.code || null;
