@@ -78,11 +78,12 @@ export class CharacterAPI {
 
         const character = data.characterData.character;
 
-        // Extract earliest clear using existing logic
+        // Extract earliest clear and all clears using existing logic
         const zoneRankings = character.zoneRankingsWithDifficulty;
         const encounterParses = character.encounterRankings?.ranks || [];
 
         let earliestClear = null;
+        let allClears = [];
         if (zoneRankings) {
             const rankingsArray = zoneRankings.rankings || [];
             const encounterRanking = rankingsArray.find(r => r.encounter?.id === encounterId);
@@ -92,9 +93,15 @@ export class CharacterAPI {
                     // Sort by date (earliest first)
                     encounterParses.sort((a, b) => a.startTime - b.startTime);
                     earliestClear = encounterParses[0];
+                    // Collect all clears with their jobs
+                    allClears = encounterParses.map(parse => ({
+                        spec: parse.spec,
+                        startTime: parse.startTime
+                    }));
                 } else {
                     // Fall back to ranking data
                     earliestClear = encounterRanking;
+                    allClears = [{ spec: encounterRanking.spec, startTime: encounterRanking.startTime }];
                 }
             }
         }
@@ -120,6 +127,7 @@ export class CharacterAPI {
 
         return {
             earliestClear,
+            allClears,
             allStarData
         };
     }

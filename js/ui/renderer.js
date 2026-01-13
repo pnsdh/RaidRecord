@@ -4,7 +4,7 @@
 
 import { getServerNameKR, JOB_COLORS } from '../constants.js';
 import { attachTooltipListeners } from './tooltips.js';
-import { formatJobText, formatWeekBadge, formatAllStarScore, formatTierBadge } from './formatters.js';
+import { formatJobText, formatWeekBadge, formatAllStarScore, formatTierBadge, formatAdditionalJobs } from './formatters.js';
 
 /**
  * UI Controller for rendering raid history
@@ -198,6 +198,7 @@ export class UIController {
                         <th>주</th>
                         <th class="date-col">날짜</th>
                         <th class="tooltip-header">직업<span class="header-tooltip">최초로 최종층을 클리어한 직업을 표시합니다. 올스타 직업과 다를 수 있습니다.</span></th>
+                        <th>추가 클리어</th>
                         <th class="tooltip-header">점수<span class="header-tooltip">모든 층의 올스타 점수를 합산하여 120점 만점으로 표준화한 점수입니다.</span></th>
                         <th class="rank-col">순위</th>
                     </tr>
@@ -232,6 +233,9 @@ export class UIController {
         // Job display (full name with color)
         const jobText = formatJobText(clearData.job);
 
+        // Additional jobs display
+        const additionalJobsHTML = formatAdditionalJobs(clearData.additionalJobs);
+
         // Week badge
         const weekBadge = formatWeekBadge(clearData.clearWeek);
 
@@ -252,6 +256,7 @@ export class UIController {
                 <td>${weekBadge}</td>
                 <td class="date-col">${dateText}</td>
                 <td>${jobText}</td>
+                <td>${additionalJobsHTML}</td>
                 <td>${scoreText}</td>
                 <td class="rank-col">${rankText}</td>
             </tr>

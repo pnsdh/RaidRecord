@@ -27,6 +27,7 @@ export async function getTierClearData(api, characterId, tier) {
     );
 
     const earliestClear = combinedData.earliestClear;
+    const allClears = combinedData.allClears || [];
     const allStarData = combinedData.allStarData;
 
     if (!earliestClear) {
@@ -51,7 +52,8 @@ export async function getTierClearData(api, characterId, tier) {
             allStarTotal: allStarData.total,
             partyMembers: [],
             reportCode: null,
-            fightId: null
+            fightId: null,
+            additionalJobs: []
         };
     }
 
@@ -62,6 +64,20 @@ export async function getTierClearData(api, characterId, tier) {
             partyMembers = await api.getPartyMembers(reportCode, fightId);
         } catch (error) {
             // Silently fail
+        }
+    }
+
+    // Extract all additional jobs (excluding first clear and deduplicating)
+    const additionalJobs = [];
+    const seenJobs = new Set([jobSpec]);
+    
+    for (const clearRecord of allClears) {
+        if (clearRecord.spec && !seenJobs.has(clearRecord.spec)) {
+            seenJobs.add(clearRecord.spec);
+            additionalJobs.push({
+                job: api.getJobFromSpecId(clearRecord.spec),
+                spec: clearRecord.spec
+            });
         }
     }
 
@@ -76,7 +92,8 @@ export async function getTierClearData(api, characterId, tier) {
         allStarTotal: allStarData.total,
         partyMembers: partyMembers,
         reportCode: reportCode,
-        fightId: fightId
+        fightId: fightId,
+        additionalJobs: additionalJobs
     };
 }
 

@@ -100,3 +100,33 @@ export function formatTierBadge(tier) {
     const typeClass = tier.type === 'SAVAGE' ? 'tier-type-savage' : 'tier-type-ultimate';
     return `<span class="tier-type-badge ${typeClass}">${tier.shortName}</span>`;
 }
+
+/**
+ * Format additional jobs display (max 2 visible, rest in tooltip)
+ */
+export function formatAdditionalJobs(additionalJobs) {
+    if (!additionalJobs || additionalJobs.length === 0) {
+        return '<span style="color: var(--text-secondary);">-</span>';
+    }
+
+    // Show max 2 jobs
+    const visibleJobs = additionalJobs.slice(0, 2);
+    const hiddenJobs = additionalJobs.slice(2);
+
+    let html = '<div class="additional-jobs">';
+    
+    for (const jobObj of visibleJobs) {
+        const job = jobObj.job || 'Unknown';
+        const color = JOB_COLORS[job] || '#999';
+        const jobName = JOB_ABBR_KR[job] || job;
+        html += `<span class="job-badge" style="color: ${color};">${jobName}</span>`;
+    }
+
+    // Add tooltip if there are hidden jobs
+    if (hiddenJobs.length > 0) {
+        html += `<span class="additional-jobs-more" title="추가 클리어: ${hiddenJobs.map(j => JOB_NAMES_KR[j.job] || j.job).join(', ')}">+${hiddenJobs.length}</span>`;
+    }
+
+    html += '</div>';
+    return html;
+}
