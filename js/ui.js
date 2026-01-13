@@ -20,8 +20,8 @@ export { createPartyMembersHTML, attachTooltipListeners } from './ui/tooltips.js
 
 // Export configuration constants
 const EXPORT_CONFIG = {
-    TABLE_WIDTH: 800,           // Base table width in pixels
-    CONTAINER_PADDING: 64,      // Left + right padding (2rem * 2 = 32px * 2)
+    TABLE_WIDTH: 700,           // Base table width in pixels
+    CONTAINER_PADDING: 32,      // Left + right padding
     BACKGROUND_COLOR: '#1a1a1a',
     HEADER_FONT_SIZE: '2rem',
     HEADER_COLOR: '#e94560',
@@ -137,7 +137,7 @@ function createExportContainer(includeCharacterName) {
         left: -9999px;
         top: -9999px;
         background-color: ${EXPORT_CONFIG.BACKGROUND_COLOR};
-        ${includeCharacterName ? 'padding: 1rem 2rem 2rem 2rem;' : ''}
+        ${includeCharacterName ? 'padding: 1rem;' : ''}
         width: ${width}px;
         box-sizing: border-box;
     `;
@@ -187,7 +187,7 @@ export async function exportAsImage(includeCharacterName = false) {
         // Add to DOM for rendering
         document.body.appendChild(tempContainer);
 
-        // Capture with html2canvas
+        // Capture with html2canvas        
         const canvas = await html2canvas(tempContainer, {
             backgroundColor: EXPORT_CONFIG.BACKGROUND_COLOR,
             scale: 1,
@@ -210,7 +210,7 @@ export async function exportAsImage(includeCharacterName = false) {
             a.download = `raid-record-${suffix}-${Date.now()}.png`;
             a.click();
             URL.revokeObjectURL(url);
-        }, 'image/png');
+        }, 'image/png', 1);
     } catch (error) {
         // Clean up on error
         if (tempContainer && tempContainer.parentNode) {
