@@ -114,7 +114,7 @@ export class UIController {
         // Set character name with Korean server and link to FFLogs
         const serverKR = getServerNameKR(character.server.name);
         const characterName = `${character.name}@${serverKR}`;
-        const fFlogsUrl = `https://www.fflogs.com/character/id/${character.id}`;
+        const fFlogsUrl = `https://ko.fflogs.com/character/id/${character.id}`;
 
         // Apply gradient with job color and make it clickable
         this.characterName.innerHTML = `<a href="${fFlogsUrl}" target="_blank" style="text-decoration: none; background: linear-gradient(135deg, ${jobColor}, #ffffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${characterName}</a>`;

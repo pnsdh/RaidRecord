@@ -57,7 +57,7 @@ export function attachTooltipListeners() {
             const fightId = row.getAttribute('data-fight');
 
             if (reportCode && fightId && reportCode !== '' && fightId !== '') {
-                const url = `https://www.fflogs.com/reports/${reportCode}#fight=${fightId}`;
+                const url = `https://ko.fflogs.com/reports/${reportCode}#fight=${fightId}`;
                 window.open(url, '_blank');
             }
         });
