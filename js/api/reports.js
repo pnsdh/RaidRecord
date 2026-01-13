@@ -14,11 +14,19 @@ export class ReportsAPI {
             return [];
         }
 
-        // Filter out invalid entries
-        const validReports = reportFights.filter(rf => rf.reportCode && rf.fightId);
+        // Create index mapping for valid reports
+        const validReportsMap = new Map();
+        const validReports = [];
+
+        reportFights.forEach((rf, originalIndex) => {
+            if (rf.reportCode && rf.fightId) {
+                validReportsMap.set(validReports.length, originalIndex);
+                validReports.push(rf);
+            }
+        });
 
         if (validReports.length === 0) {
-            return [];
+            return reportFights.map(() => []);
         }
 
         // Build query with aliases for each report
@@ -65,21 +73,22 @@ export class ReportsAPI {
 
         const data = await this.query(queryString, variables, true);
 
-        // Process results for each report
-        const results = [];
+        // Initialize results array with empty arrays for all reports
+        const results = reportFights.map(() => []);
+
+        // Process results for each valid report
         validReports.forEach((rf, index) => {
             const alias = `report${index}`;
             const report = data.reportData[alias];
+            const originalIndex = validReportsMap.get(index);
 
             if (!report) {
-                results.push([]);
                 return;
             }
 
             const fight = report.fights.find(f => f.id === rf.fightId);
 
             if (!fight) {
-                results.push([]);
                 return;
             }
 
@@ -87,7 +96,6 @@ export class ReportsAPI {
             const fightPlayerIds = fight.friendlyPlayers || [];
 
             if (fightPlayerIds.length === 0) {
-                results.push([]);
                 return;
             }
 
@@ -114,7 +122,7 @@ export class ReportsAPI {
                 job: this.getJobFromSpecId(player.subType)
             }));
 
-            results.push(partyMembers);
+            results[originalIndex] = partyMembers;
         });
 
         return results;
