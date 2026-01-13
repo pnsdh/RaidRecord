@@ -56,11 +56,10 @@ function applyDesktopStylesToTable(tableClone) {
         el.style.display = 'table-cell';
     });
 
-    // Set fixed table dimensions
+    // Set table width (auto layout for natural column sizing)
     const table = tableClone.querySelector('table') || tableClone;
     if (table.tagName === 'TABLE') {
         table.style.width = `${EXPORT_CONFIG.TABLE_WIDTH}px`;
-        table.style.tableLayout = 'fixed';
     }
 
     // Apply desktop font sizes and padding to headers
