@@ -2,6 +2,8 @@
  * Search input parsing utilities
  */
 
+import { getServerNameKR } from '../constants.js';
+
 /**
  * Parse character search input
  * Expected format: "CharacterName ServerName"
@@ -29,7 +31,8 @@ export async function searchCharacter(api, searchInput, region) {
     const character = await api.searchCharacter(characterName, serverName, region);
 
     if (!character) {
-        throw new Error(`캐릭터를 찾을 수 없습니다: ${characterName} @ ${serverName}`);
+        const serverNameKR = getServerNameKR(serverName);
+        throw new Error(`캐릭터를 찾을 수 없습니다: ${characterName} @ ${serverNameKR}`);
     }
 
     return character;
