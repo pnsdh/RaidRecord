@@ -42,4 +42,35 @@ export class FFLogsAPI extends FFLogsAPICore {
     async getPartyMembers(reportCode, fightId) {
         return this.reportsAPI.getPartyMembers(reportCode, fightId);
     }
+
+    /**
+     * Check if there are enough API points remaining for a search
+     * @param {number} requiredPoints - Number of points required
+     * @returns {boolean} - True if enough points available
+     */
+    hasEnoughPoints(requiredPoints) {
+        const rateLimitInfo = this.getRateLimitInfo();
+        if (!rateLimitInfo) {
+            // If no rate limit data yet, assume we have enough
+            return true;
+        }
+
+        const { limitPerHour, pointsSpentThisHour } = rateLimitInfo;
+        const remainingPoints = limitPerHour - pointsSpentThisHour;
+        return remainingPoints >= requiredPoints;
+    }
+
+    /**
+     * Get remaining API points
+     * @returns {number|null} - Remaining points or null if no data
+     */
+    getRemainingPoints() {
+        const rateLimitInfo = this.getRateLimitInfo();
+        if (!rateLimitInfo) {
+            return null;
+        }
+
+        const { limitPerHour, pointsSpentThisHour } = rateLimitInfo;
+        return limitPerHour - pointsSpentThisHour;
+    }
 }

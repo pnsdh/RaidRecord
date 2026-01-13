@@ -55,6 +55,14 @@ export class RaidHistorySearch {
     }
 
     /**
+     * Get count of selected raid tiers
+     */
+    getSelectedTierCount() {
+        const tiers = getSelectedRaidTiers();
+        return tiers.length;
+    }
+
+    /**
      * Get all raid tier clear data for a character
      */
     async getRaidHistory(character) {
@@ -66,6 +74,20 @@ export class RaidHistorySearch {
             // Check if cancelled
             if (this.cancelled) {
                 throw new Error('검색이 취소되었습니다.');
+            }
+
+            // Check if we still have enough API points before each tier query
+            const remainingTiers = tiers.length - i;
+            const requiredPoints = remainingTiers * TIMING.POINTS_PER_TIER;
+
+            if (!this.api.hasEnoughPoints(requiredPoints)) {
+                const remainingPoints = this.api.getRemainingPoints();
+                const resetMinutes = Math.ceil((this.api.getRateLimitInfo()?.pointsResetIn || 3600) / 60);
+                throw new Error(
+                    `API 포인트가 부족하여 검색을 중단합니다.\n` +
+                    `남은 포인트: ${remainingPoints} 포인트\n` +
+                    `${resetMinutes}분 후 리셋됩니다. 잠시 후 다시 시도해주세요.`
+                );
             }
 
             const tier = tiers[i];

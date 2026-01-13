@@ -5,7 +5,7 @@
 import { initializeAPI, saveCredentials } from './storage.js';
 import { RaidHistorySearch, sortRaidHistory } from '../search.js';
 import { UIController } from '../ui.js';
-import { STORAGE_KEYS, APP_CONFIG } from '../constants.js';
+import { STORAGE_KEYS, APP_CONFIG, TIMING } from '../constants.js';
 import { UI_CONFIG } from '../config/config.js';
 import { SettingsModal, RaidSelectionModal } from './modals.js';
 import { initializeElements, populateServerSelect, attachEventListeners } from './init.js';
@@ -155,6 +155,21 @@ export class App {
 
             // Update API usage after first query
             this.updateApiUsage();
+
+            // Check if we have enough API points for the search
+            const selectedTierCount = this.search.getSelectedTierCount();
+            const requiredPoints = selectedTierCount * TIMING.POINTS_PER_TIER;
+
+            if (!this.api.hasEnoughPoints(requiredPoints)) {
+                const remainingPoints = this.api.getRemainingPoints();
+                const resetMinutes = Math.ceil((this.api.getRateLimitInfo()?.pointsResetIn || 3600) / 60);
+                throw new Error(
+                    `API 포인트가 부족합니다.\n` +
+                    `필요: 약 ${requiredPoints} 포인트\n` +
+                    `남은 포인트: ${remainingPoints} 포인트\n` +
+                    `${resetMinutes}분 후 리셋됩니다. 잠시 후 다시 시도해주세요.`
+                );
+            }
 
             // Set progress callback
             this.search.setProgressCallback((progress) => {

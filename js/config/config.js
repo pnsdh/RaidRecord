@@ -37,7 +37,8 @@ export const DIFFICULTY = {
 export const TIMING = {
     TOKEN_REFRESH_THRESHOLD: 5 * 60 * 1000,  // 5 minutes before expiry
     SEARCH_DELAY_MS: 200,                     // Delay between tier searches
-    MS_PER_WEEK: 7 * 24 * 60 * 60 * 1000     // Milliseconds in a week
+    MS_PER_WEEK: 7 * 24 * 60 * 60 * 1000,    // Milliseconds in a week
+    POINTS_PER_TIER: 20                       // Estimated API points per tier search
 };
 
 // UI configuration
