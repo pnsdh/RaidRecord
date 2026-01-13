@@ -15,6 +15,7 @@ export class RaidHistorySearch {
         this.api = api;
         this.region = region;
         this.progressCallback = null;
+        this.apiUsageCallback = null;
         this.cancelled = false;
     }
 
@@ -23,6 +24,13 @@ export class RaidHistorySearch {
      */
     setProgressCallback(callback) {
         this.progressCallback = callback;
+    }
+
+    /**
+     * Set API usage callback function
+     */
+    setApiUsageCallback(callback) {
+        this.apiUsageCallback = callback;
     }
 
     /**
@@ -82,8 +90,17 @@ export class RaidHistorySearch {
                         clearData: clearData
                     });
                 }
+
+                // Update API usage after each tier query
+                if (this.apiUsageCallback) {
+                    this.apiUsageCallback();
+                }
             } catch (error) {
                 // Continue with other tiers even if one fails
+                // Still update API usage on error
+                if (this.apiUsageCallback) {
+                    this.apiUsageCallback();
+                }
             }
 
             // Add a small delay to avoid rate limiting

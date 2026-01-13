@@ -41,7 +41,7 @@ export class ReportsAPI {
             }
         `;
 
-        const data = await this.query(queryString, { reportCode });
+        const data = await this.query(queryString, { reportCode }, true);
 
         if (!data?.reportData?.report) {
             return null;

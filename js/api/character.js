@@ -24,11 +24,6 @@ export class CharacterAPI {
                         }
                     }
                 }
-                rateLimitData {
-                    limitPerHour
-                    pointsSpentThisHour
-                    pointsResetIn
-                }
             }
         `;
 
@@ -36,7 +31,7 @@ export class CharacterAPI {
             name: characterName,
             server: serverName.toLowerCase(),
             region: serverRegion
-        });
+        }, true);
 
         if (!data?.characterData?.character) {
             return null;
@@ -79,7 +74,7 @@ export class CharacterAPI {
             encounterId,
             difficulty,
             partition
-        });
+        }, true);
 
         const character = data.characterData.character;
 

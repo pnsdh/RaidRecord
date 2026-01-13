@@ -161,6 +161,11 @@ export class App {
                 this.ui.updateProgress(progress);
             });
 
+            // Set API usage callback for real-time updates
+            this.search.setApiUsageCallback(() => {
+                this.updateApiUsage();
+            });
+
             // Get raid history
             this.ui.showLoading('레이드 이력 검색 중...');
             const raidHistory = await this.search.getRaidHistory(character);
