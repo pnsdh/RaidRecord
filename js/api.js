@@ -33,14 +33,6 @@ export class FFLogsAPI extends FFLogsAPICore {
         return this.characterAPI.searchCharacter(characterName, serverName, serverRegion);
     }
 
-    async getCharacterRankings(characterId, zoneId, difficulty, partition) {
-        return this.characterAPI.getCharacterRankings(characterId, zoneId, difficulty, partition);
-    }
-
-    async getCharacterEncounterParses(characterId, encounterId, difficulty, partition) {
-        return this.characterAPI.getCharacterEncounterParses(characterId, encounterId, difficulty, partition);
-    }
-
     async getCombinedTierData(characterId, zoneId, encounterId, difficulty, partition) {
         return this.characterAPI.getCombinedTierData(characterId, zoneId, encounterId, difficulty, partition);
     }
@@ -48,20 +40,8 @@ export class FFLogsAPI extends FFLogsAPICore {
     /**
      * Reports API methods - delegated to ReportsAPI
      */
-    async getZoneEncounters(zoneId) {
-        return this.reportsAPI.getZoneEncounters(zoneId);
-    }
-
-    async getReportFights(reportCode) {
-        return this.reportsAPI.getReportFights(reportCode);
-    }
-
     async getPartyMembers(reportCode, fightId) {
         return this.reportsAPI.getPartyMembers(reportCode, fightId);
-    }
-
-    async getEncounterRankings(encounterId, characterName, serverName, serverRegion, difficulty, partition) {
-        return this.reportsAPI.getEncounterRankings(encounterId, characterName, serverName, serverRegion, difficulty, partition);
     }
 }
 
