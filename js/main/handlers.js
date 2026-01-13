@@ -93,4 +93,20 @@ export function attachEventListeners(app, elements, modals) {
             settingsModal.close();
         }
     });
+
+    // Copy buttons in settings modal
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('copy-btn')) {
+            const textToCopy = e.target.getAttribute('data-copy');
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const originalText = e.target.textContent;
+                e.target.textContent = '✓';
+                setTimeout(() => {
+                    e.target.textContent = originalText;
+                }, 1000);
+            }).catch(() => {
+                alert('복사에 실패했습니다.');
+            });
+        }
+    });
 }
