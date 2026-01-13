@@ -27,6 +27,36 @@ export class UIController {
     }
 
     /**
+     * Disable all input controls during search
+     */
+    disableControls() {
+        const searchInput = document.getElementById('characterSearch');
+        const serverSelect = document.getElementById('serverSelect');
+        const raidSelectBtn = document.getElementById('raidSelectBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+
+        if (searchInput) searchInput.disabled = true;
+        if (serverSelect) serverSelect.disabled = true;
+        if (raidSelectBtn) raidSelectBtn.disabled = true;
+        if (settingsBtn) settingsBtn.disabled = true;
+    }
+
+    /**
+     * Enable all input controls after search
+     */
+    enableControls() {
+        const searchInput = document.getElementById('characterSearch');
+        const serverSelect = document.getElementById('serverSelect');
+        const raidSelectBtn = document.getElementById('raidSelectBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+
+        if (searchInput) searchInput.disabled = false;
+        if (serverSelect) serverSelect.disabled = false;
+        if (raidSelectBtn) raidSelectBtn.disabled = false;
+        if (settingsBtn) settingsBtn.disabled = false;
+    }
+
+    /**
      * Show loading state
      */
     showLoading(message = '캐릭터 데이터를 불러오는 중...') {

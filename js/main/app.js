@@ -140,6 +140,7 @@ export class App {
             this.isSearching = true;
             this.search.resetCancel();
             this.updateSearchButton();
+            this.ui.disableControls();
 
             // Save selected server
             localStorage.setItem(STORAGE_KEYS.SERVER, serverName);
@@ -206,6 +207,7 @@ export class App {
             // Reset searching state
             this.isSearching = false;
             this.updateSearchButton();
+            this.ui.enableControls();
         }
     }
 

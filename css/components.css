@@ -63,6 +63,12 @@
     border-color: var(--accent-primary);
 }
 
+.form-input:disabled, .form-select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--bg-primary);
+}
+
 .input-row {
     display: flex;
     gap: 1rem;
