@@ -113,7 +113,8 @@ export function formatAdditionalJobs(additionalJobs) {
     const visibleJobs = additionalJobs.slice(0, 2);
     const hiddenJobs = additionalJobs.slice(2);
 
-    let html = '<div class="additional-jobs">';
+    const containerClass = (visibleJobs.length === 1) ? 'additional-jobs single' : 'additional-jobs';
+    let html = `<div class="${containerClass}">`;
     
     for (const jobObj of visibleJobs) {
         const job = jobObj.job || 'Unknown';

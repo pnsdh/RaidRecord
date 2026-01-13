@@ -117,6 +117,18 @@
     gap: 0.5rem;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: flex-start;
+}
+
+/* Center when only a single additional job is present */
+.additional-jobs.single {
+    justify-content: center;
+}
+
+/* Ensure the job badge is centered inside the flex container */
+.additional-jobs.single .job-badge {
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .additional-jobs-more {
