@@ -2,7 +2,7 @@
  * UI Renderer - Main UIController class
  */
 
-import { getServerNameKR } from '../constants.js';
+import { getServerNameKR, JOB_COLORS } from '../constants.js';
 import { attachTooltipListeners } from './tooltips.js';
 import { formatJobText, formatWeekBadge, formatAllStarScore, formatTierBadge } from './formatters.js';
 
@@ -77,9 +77,21 @@ export class UIController {
     renderResults(character, raidHistory) {
         this.hideAll();
 
-        // Set character name with Korean server
+        // Find the most frequently used job (most recent if tied)
+        const mostUsedJob = this.findMostUsedJob(raidHistory);
+        const jobColor = this.getJobColor(mostUsedJob);
+
+        // Set character name with Korean server and link to FFLogs
         const serverKR = getServerNameKR(character.server.name);
-        this.characterName.textContent = `${character.name}@${serverKR}`;
+        const characterName = `${character.name}@${serverKR}`;
+        const fFlogsUrl = `https://www.fflogs.com/character/id/${character.id}`;
+
+        // Apply gradient with job color and make it clickable
+        this.characterName.innerHTML = `<a href="${fFlogsUrl}" target="_blank" style="text-decoration: none; background: linear-gradient(135deg, ${jobColor}, #ffffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${characterName}</a>`;
+
+        // Store job color for image export
+        this.characterName.setAttribute('data-job-color', jobColor);
+        this.characterName.setAttribute('data-character-name', characterName);
 
         // Generate table HTML
         const tableHTML = this.generateTableHTML(raidHistory);
@@ -90,6 +102,54 @@ export class UIController {
 
         // Attach event listeners for tooltips
         attachTooltipListeners();
+    }
+
+    /**
+     * Find the most frequently used job in raid history
+     * If tied, return the most recent one
+     */
+    findMostUsedJob(raidHistory) {
+        if (!raidHistory || raidHistory.length === 0) return null;
+
+        const jobCounts = {};
+        const jobFirstIndex = {};
+
+        // Count job frequency and track first occurrence (raidHistory is sorted newest first)
+        raidHistory.forEach((entry, index) => {
+            const job = entry.clearData?.job;
+            if (job && job !== 'Unknown') {
+                jobCounts[job] = (jobCounts[job] || 0) + 1;
+                // Only store the first occurrence (smallest index = most recent)
+                if (!(job in jobFirstIndex)) {
+                    jobFirstIndex[job] = index;
+                }
+            }
+        });
+
+        if (Object.keys(jobCounts).length === 0) return null;
+
+        // Find maximum count
+        const maxCount = Math.max(...Object.values(jobCounts));
+
+        // Get all jobs with max count
+        const topJobs = Object.keys(jobCounts).filter(job => jobCounts[job] === maxCount);
+
+        // If tied, return the most recent one (smallest index)
+        if (topJobs.length > 1) {
+            return topJobs.reduce((mostRecent, job) =>
+                jobFirstIndex[job] < jobFirstIndex[mostRecent] ? job : mostRecent
+            );
+        }
+
+        return topJobs[0];
+    }
+
+    /**
+     * Get job color from constants
+     */
+    getJobColor(job) {
+        if (!job) return '#e94560'; // Default color
+        return JOB_COLORS[job] || '#e94560';
     }
 
     /**

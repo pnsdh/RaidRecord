@@ -94,11 +94,16 @@ function createStyledHeader(resultsSection) {
     const h2 = headerClone.querySelector('h2');
 
     if (h2) {
-        // Replace gradient text with solid color for image export
+        // Get job color from stored data attribute
+        const jobColor = h2.getAttribute('data-job-color') || EXPORT_CONFIG.HEADER_COLOR;
+        const characterName = h2.getAttribute('data-character-name') || h2.textContent;
+
+        // Replace gradient text with solid job color for image export
+        h2.textContent = characterName;
         h2.style.cssText = `
             font-size: ${EXPORT_CONFIG.HEADER_FONT_SIZE};
             font-weight: 600;
-            color: ${EXPORT_CONFIG.HEADER_COLOR};
+            color: ${jobColor};
             white-space: nowrap;
             margin: 0;
             background: none;
