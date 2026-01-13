@@ -3,7 +3,7 @@
  */
 
 import { getSelectedRaidTiers } from '../constants.js';
-import { searchCharacter as searchCharacterUtil } from './character.js';
+import { searchCharacter as searchCharacterUtil } from './input.js';
 import { getTierClearData, delay } from './tiers.js';
 import { TIMING } from '../config/config.js';
 

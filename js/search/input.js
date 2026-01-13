@@ -1,5 +1,5 @@
 /**
- * Character search utilities
+ * Search input parsing utilities
  */
 
 /**
