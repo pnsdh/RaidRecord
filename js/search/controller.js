@@ -8,6 +8,17 @@ import { getTierClearData, delay } from './tiers.js';
 import { TIMING } from '../config/config.js';
 
 /**
+ * Sort raid history by release date (newest first)
+ */
+export function sortRaidHistory(raidHistory) {
+    return raidHistory.sort((a, b) => {
+        const dateA = new Date(a.tier.releaseDate);
+        const dateB = new Date(b.tier.releaseDate);
+        return dateB - dateA; // Newest first
+    });
+}
+
+/**
  * Search character and get raid clear history
  */
 export class RaidHistorySearch {
