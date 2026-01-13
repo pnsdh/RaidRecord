@@ -208,3 +208,54 @@
     max-height: 50vh;
     overflow-y: auto;
 }
+
+/* Mobile Responsive Design */
+@media (max-width: 500px) {
+    .modal-content {
+        padding: 1rem;
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .modal-header {
+        margin-bottom: 0.75rem;
+    }
+
+    .modal-title {
+        font-size: 1.2rem;
+    }
+
+    .expansion-header {
+        font-size: 1rem;
+        padding: 0.5rem;
+        margin-right: 0.5rem;
+    }
+
+    .tier-checkbox-list {
+        padding-left: 0.5rem;
+    }
+
+    .tier-checkbox-item {
+        padding: 0.4rem;
+        margin-right: 0.5rem;
+    }
+
+    .tier-checkbox-item label {
+        font-size: 0.9rem;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+        padding: 0.75rem 1rem;
+    }
+
+    .raid-selection-list {
+        max-height: 60vh;
+    }
+}

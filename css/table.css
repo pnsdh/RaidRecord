@@ -41,6 +41,10 @@
     cursor: pointer;
 }
 
+.results-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
 /* Raid Name Cell */
 .raid-name-cell {
     display: flex;
@@ -153,4 +157,36 @@
 .member-name {
     color: var(--text-primary);
     font-size: 0.9rem;
+}
+
+/* Mobile Responsive Design */
+@media (max-width: 500px) {
+    .results-table thead th {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.75rem;
+    }
+
+    .results-table tbody td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.75rem;
+    }
+
+    .raid-name {
+        font-size: 0.7rem;
+    }
+
+    .raid-name-cell {
+        gap: 0.25rem;
+    }
+
+    /* Hide date and rank columns on mobile */
+    .results-table .date-col,
+    .results-table .rank-col {
+        display: none;
+    }
+
+    /* Make table scrollable on mobile */
+    .results-table-container {
+        -webkit-overflow-scrolling: touch;
+    }
 }

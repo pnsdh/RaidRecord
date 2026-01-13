@@ -14,7 +14,8 @@ export function initializeElements() {
         searchBtn: document.getElementById('searchBtn'),
         raidSelectBtn: document.getElementById('raidSelectBtn'),
         settingsBtn: document.getElementById('settingsBtn'),
-        exportImageBtn: document.getElementById('exportImageBtn'),
+        exportImageWithoutNameBtn: document.getElementById('exportImageWithoutNameBtn'),
+        exportImageWithNameBtn: document.getElementById('exportImageWithNameBtn'),
         selectAllRaidsBtn: document.getElementById('selectAllRaidsBtn'),
         deselectAllRaidsBtn: document.getElementById('deselectAllRaidsBtn'),
         saveRaidSelectionBtn: document.getElementById('saveRaidSelectionBtn'),
@@ -44,7 +45,7 @@ export function populateServerSelect(serverSelect) {
  * Attach event listeners to application elements
  */
 export function attachEventListeners(app, elements, modals) {
-    const { searchBtn, searchInput, raidSelectBtn, settingsBtn, exportImageBtn,
+    const { searchBtn, searchInput, raidSelectBtn, settingsBtn, exportImageWithoutNameBtn, exportImageWithNameBtn,
             selectAllRaidsBtn, deselectAllRaidsBtn, saveRaidSelectionBtn, saveSettingsBtn } = elements;
 
     const { settingsModal, raidSelectionModal } = modals;
@@ -69,10 +70,16 @@ export function attachEventListeners(app, elements, modals) {
     settingsModal.closeSettingsModal.addEventListener('click', () => settingsModal.close());
     saveSettingsBtn.addEventListener('click', () => app.saveSettings());
 
-    // Export
-    exportImageBtn.addEventListener('click', async () => {
+    // Export - Without Character Name
+    exportImageWithoutNameBtn.addEventListener('click', async () => {
         const { exportAsImage } = await import('../ui.js');
-        exportAsImage();
+        exportAsImage(false);
+    });
+
+    // Export - With Character Name
+    exportImageWithNameBtn.addEventListener('click', async () => {
+        const { exportAsImage } = await import('../ui.js');
+        exportAsImage(true);
     });
 
     // Close modals on outside click
