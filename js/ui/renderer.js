@@ -198,7 +198,7 @@ export class UIController {
                         <th>주</th>
                         <th class="date-col">날짜</th>
                         <th class="tooltip-header">직업<span class="header-tooltip">최초로 최종층을 클리어한 직업을 표시합니다. 올스타 직업과 다를 수 있습니다.</span></th>
-                        <th>추가 클리어</th>
+                        <th class="tooltip-header">클리어한 직업들<span class="header-tooltip">해당 캐릭터가 같은 층을 다른 직업으로 클리어한 기록들을 요약해서 보여줍니다. 최대 2개까지 표시되고 나머지는 +N에 마우스를 올리면 표시됩니다.</span></th>
                         <th class="tooltip-header">점수<span class="header-tooltip">모든 층의 올스타 점수를 합산하여 120점 만점으로 표준화한 점수입니다.</span></th>
                         <th class="rank-col">순위</th>
                     </tr>
