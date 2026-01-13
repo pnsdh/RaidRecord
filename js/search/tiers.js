@@ -1,37 +1,15 @@
 /**
- * Raid tier clear data retrieval
+ * Utility functions for raid tier processing
  */
 
-import { DIFFICULTY, getWeekNumber, formatDate } from '../constants.js';
+import { getWeekNumber, formatDate } from '../constants.js';
 
 /**
- * Get clear data for a specific raid tier
+ * Process tier data with pre-fetched party members
  */
-export async function getTierClearData(api, characterId, tier) {
-    const difficulty = tier.type === 'SAVAGE' ? DIFFICULTY.SAVAGE : DIFFICULTY.ULTIMATE;
-
-    // Use the finalEncounterId from tier data
-    const finalEncounterId = tier.finalEncounterId;
-
-    if (!finalEncounterId) {
-        return null;
-    }
-
-    // Get combined data (earliest clear + all-star) in one query
-    const combinedData = await api.getCombinedTierData(
-        characterId,
-        tier.zoneId,
-        finalEncounterId,
-        difficulty,
-        tier.partition
-    );
-
+export function processTierData(api, combinedData, tier, partyMembers = []) {
     const earliestClear = combinedData.earliestClear;
     const allStarData = combinedData.allStarData;
-
-    if (!earliestClear) {
-        return null;
-    }
 
     // Extract report information from the parse record
     const reportCode = earliestClear.report?.code || null;
@@ -55,16 +33,6 @@ export async function getTierClearData(api, characterId, tier) {
         };
     }
 
-    // Get party members if we have report info
-    let partyMembers = [];
-    if (reportCode && fightId) {
-        try {
-            partyMembers = await api.getPartyMembers(reportCode, fightId);
-        } catch (error) {
-            // Silently fail
-        }
-    }
-
     return {
         encounterName: '',
         job: api.getJobFromSpecId(jobSpec),
@@ -78,11 +46,4 @@ export async function getTierClearData(api, characterId, tier) {
         reportCode: reportCode,
         fightId: fightId
     };
-}
-
-/**
- * Utility function to delay execution
- */
-export function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }

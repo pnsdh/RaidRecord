@@ -41,86 +41,116 @@ export class CharacterAPI {
     }
 
     /**
-     * Get combined data for a tier (rankings + encounter parses + all-star) in one query
+     * Get combined data for multiple tiers in a single batch query
      */
-    async getCombinedTierData(characterId, zoneId, encounterId, difficulty, partition) {
+    async getBatchTierData(characterId, tiers) {
+        // Build query with aliases for each tier
+        let queryFields = '';
+        const variables = { characterId };
+
+        tiers.forEach((tier, index) => {
+            const difficulty = tier.type === 'SAVAGE' ? 101 : 100;
+            const alias = `tier${index}`;
+
+            // Add variables for this tier
+            variables[`zoneId${index}`] = tier.zoneId;
+            variables[`encounterId${index}`] = tier.finalEncounterId;
+            variables[`difficulty${index}`] = difficulty;
+            variables[`partition${index}`] = tier.partition;
+
+            // Add query field with alias
+            queryFields += `
+                ${alias}: character(id: $characterId) {
+                    zoneRankingsWithDifficulty: zoneRankings(
+                        zoneID: $zoneId${index},
+                        difficulty: $difficulty${index},
+                        partition: $partition${index}
+                    )
+                    encounterRankings(
+                        encounterID: $encounterId${index},
+                        difficulty: $difficulty${index},
+                        partition: $partition${index}
+                    )
+                    allStarRankings: zoneRankings(
+                        zoneID: $zoneId${index},
+                        difficulty: $difficulty${index},
+                        partition: $partition${index}
+                    )
+                }
+            `;
+        });
+
+        // Build variable definitions
+        let variableDefinitions = '$characterId: Int!';
+        tiers.forEach((_, index) => {
+            variableDefinitions += `, $zoneId${index}: Int!, $encounterId${index}: Int!, $difficulty${index}: Int, $partition${index}: Int`;
+        });
+
         const queryString = `
-            query($characterId: Int!, $zoneId: Int!, $encounterId: Int!, $difficulty: Int, $partition: Int) {
+            query(${variableDefinitions}) {
                 characterData {
-                    character(id: $characterId) {
-                        zoneRankingsWithDifficulty: zoneRankings(
-                            zoneID: $zoneId,
-                            difficulty: $difficulty,
-                            partition: $partition
-                        )
-                        encounterRankings(
-                            encounterID: $encounterId,
-                            difficulty: $difficulty,
-                            partition: $partition
-                        )
-                        allStarRankings: zoneRankings(
-                            zoneID: $zoneId,
-                            difficulty: $difficulty,
-                            partition: $partition
-                        )
-                    }
+                    ${queryFields}
                 }
             }
         `;
 
-        const data = await this.query(queryString, {
-            characterId,
-            zoneId,
-            encounterId,
-            difficulty,
-            partition
-        }, true);
+        const data = await this.query(queryString, variables, true);
 
-        const character = data.characterData.character;
+        // Process results for each tier
+        const results = [];
+        tiers.forEach((tier, index) => {
+            const alias = `tier${index}`;
+            const character = data.characterData[alias];
 
-        // Extract earliest clear using existing logic
-        const zoneRankings = character.zoneRankingsWithDifficulty;
-        const encounterParses = character.encounterRankings?.ranks || [];
+            if (!character) {
+                results.push(null);
+                return;
+            }
 
-        let earliestClear = null;
-        if (zoneRankings) {
-            const rankingsArray = zoneRankings.rankings || [];
-            const encounterRanking = rankingsArray.find(r => r.encounter?.id === encounterId);
+            // Extract earliest clear
+            const zoneRankings = character.zoneRankingsWithDifficulty;
+            const encounterParses = character.encounterRankings?.ranks || [];
+            const encounterId = tier.finalEncounterId;
 
-            if (encounterRanking) {
-                if (encounterParses.length > 0) {
-                    // Sort by date (earliest first)
-                    encounterParses.sort((a, b) => a.startTime - b.startTime);
-                    earliestClear = encounterParses[0];
-                } else {
-                    // Fall back to ranking data
-                    earliestClear = encounterRanking;
+            let earliestClear = null;
+            if (zoneRankings) {
+                const rankingsArray = zoneRankings.rankings || [];
+                const encounterRanking = rankingsArray.find(r => r.encounter?.id === encounterId);
+
+                if (encounterRanking) {
+                    if (encounterParses.length > 0) {
+                        encounterParses.sort((a, b) => a.startTime - b.startTime);
+                        earliestClear = encounterParses[0];
+                    } else {
+                        earliestClear = encounterRanking;
+                    }
                 }
             }
-        }
 
-        // Extract all-star data (use highest points if multiple jobs)
-        const allStarRankings = character.allStarRankings;
-        let allStarData = { points: 0, rank: null, total: null };
-        if (allStarRankings) {
-            const allStars = allStarRankings.allStars || [];
-            if (allStars.length > 0) {
-                // Find the entry with highest points
-                const bestAllStar = allStars.reduce((best, current) => {
-                    return (current.points || 0) > (best.points || 0) ? current : best;
-                }, allStars[0]);
+            // Extract all-star data
+            const allStarRankings = character.allStarRankings;
+            let allStarData = { points: 0, rank: null, total: null };
+            if (allStarRankings) {
+                const allStars = allStarRankings.allStars || [];
+                if (allStars.length > 0) {
+                    const bestAllStar = allStars.reduce((best, current) => {
+                        return (current.points || 0) > (best.points || 0) ? current : best;
+                    }, allStars[0]);
 
-                allStarData = {
-                    points: bestAllStar.points || 0,
-                    rank: bestAllStar.rank || null,
-                    total: bestAllStar.total || null
-                };
+                    allStarData = {
+                        points: bestAllStar.points || 0,
+                        rank: bestAllStar.rank || null,
+                        total: bestAllStar.total || null
+                    };
+                }
             }
-        }
 
-        return {
-            earliestClear,
-            allStarData
-        };
+            results.push({
+                earliestClear,
+                allStarData
+            });
+        });
+
+        return results;
     }
 }

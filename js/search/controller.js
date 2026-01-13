@@ -4,8 +4,7 @@
 
 import { getSelectedRaidTiers } from '../constants.js';
 import { searchCharacter as searchCharacterUtil } from './input.js';
-import { getTierClearData, delay } from './tiers.js';
-import { TIMING } from '../config/config.js';
+import { processTierData } from './tiers.js';
 
 /**
  * Sort raid history by release date (newest first)
@@ -78,68 +77,97 @@ export class RaidHistorySearch {
      */
     async getRaidHistory(character) {
         const tiers = getSelectedRaidTiers();
-        const results = [];
-        const totalTiers = tiers.length;
 
-        for (let i = 0; i < tiers.length; i++) {
-            // Check if cancelled
-            if (this.cancelled) {
-                throw new Error('검색이 취소되었습니다.');
-            }
+        // Check if cancelled before starting
+        if (this.cancelled) {
+            throw new Error('검색이 취소되었습니다.');
+        }
 
-            // Check if we still have enough API points before each tier query
-            const remainingTiers = tiers.length - i;
-            const requiredPoints = remainingTiers * TIMING.POINTS_PER_TIER;
-
-            if (!this.api.hasEnoughPoints(requiredPoints)) {
-                const remainingPoints = this.api.getRemainingPoints();
-                const resetMinutes = Math.ceil((this.api.getRateLimitInfo()?.pointsResetIn || 3600) / 60);
-                throw new Error(
-                    `API 포인트가 부족하여 검색을 중단합니다.\n` +
-                    `남은 포인트: ${remainingPoints} 포인트\n` +
-                    `${resetMinutes}분 후 리셋됩니다. 잠시 후 다시 시도해주세요.`
-                );
-            }
-
-            const tier = tiers[i];
-
-            // Report progress
+        try {
+            // Report progress: fetching raid data
             if (this.progressCallback) {
                 this.progressCallback({
-                    current: i + 1,
-                    total: totalTiers,
-                    tierName: tier.fullName,
-                    expansion: tier.expansion
+                    current: 0,
+                    total: 1,
+                    tierName: '레이드 데이터',
+                    expansion: '조회 중'
                 });
             }
 
-            try {
-                const clearData = await getTierClearData(this.api, character.id, tier);
+            // Get all tier data in a single batch query
+            const batchResults = await this.api.getBatchTierData(character.id, tiers);
 
-                if (clearData) {
-                    results.push({
-                        expansion: tier.expansion,
-                        tier: tier,
-                        clearData: clearData
-                    });
+            // Update API usage after batch query
+            if (this.apiUsageCallback) {
+                this.apiUsageCallback();
+            }
+
+            // Collect all report/fight pairs for batch party member query
+            const reportFights = [];
+            batchResults.forEach((combinedData) => {
+                if (combinedData && combinedData.earliestClear) {
+                    const reportCode = combinedData.earliestClear.report?.code || null;
+                    const fightId = combinedData.earliestClear.report?.fightID || null;
+                    reportFights.push({ reportCode, fightId });
+                } else {
+                    reportFights.push({ reportCode: null, fightId: null });
+                }
+            });
+
+            // Report progress: fetching party members
+            if (this.progressCallback) {
+                this.progressCallback({
+                    current: 1,
+                    total: 1,
+                    tierName: '파티 정보',
+                    expansion: '조회 중'
+                });
+            }
+
+            // Get all party members in a single batch query
+            const batchPartyMembers = await this.api.getBatchPartyMembers(reportFights);
+
+            // Update API usage after batch query
+            if (this.apiUsageCallback) {
+                this.apiUsageCallback();
+            }
+
+            // Process results with pre-fetched party members
+            const results = [];
+            for (let i = 0; i < tiers.length; i++) {
+                // Check if cancelled during processing
+                if (this.cancelled) {
+                    throw new Error('검색이 취소되었습니다.');
                 }
 
-                // Update API usage after each tier query
-                if (this.apiUsageCallback) {
-                    this.apiUsageCallback();
-                }
-            } catch (error) {
-                // Continue with other tiers even if one fails
-                // Still update API usage on error
-                if (this.apiUsageCallback) {
-                    this.apiUsageCallback();
+                const tier = tiers[i];
+                const combinedData = batchResults[i];
+                const partyMembers = batchPartyMembers[i] || [];
+
+                if (combinedData && combinedData.earliestClear) {
+                    try {
+                        const clearData = processTierData(this.api, combinedData, tier, partyMembers);
+
+                        if (clearData) {
+                            results.push({
+                                expansion: tier.expansion,
+                                tier: tier,
+                                clearData: clearData
+                            });
+                        }
+                    } catch (error) {
+                        // Continue with other tiers even if one fails
+                    }
                 }
             }
 
-            // Add a small delay to avoid rate limiting
-            await delay(TIMING.SEARCH_DELAY_MS);
+            return results;
+        } catch (error) {
+            // Update API usage on error
+            if (this.apiUsageCallback) {
+                this.apiUsageCallback();
+            }
+            throw error;
         }
-
-        return results;
     }
 }

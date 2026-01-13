@@ -7,93 +7,116 @@
  */
 export class ReportsAPI {
     /**
-     * Get fight details from a report
+     * Get party members for multiple reports in a single batch query
      */
-    async getReportFights(reportCode) {
-        const queryString = `
-            query($reportCode: String!) {
-                reportData {
-                    report(code: $reportCode) {
-                        code
-                        startTime
-                        endTime
-                        fights {
+    async getBatchPartyMembers(reportFights) {
+        if (!reportFights || reportFights.length === 0) {
+            return [];
+        }
+
+        // Filter out invalid entries
+        const validReports = reportFights.filter(rf => rf.reportCode && rf.fightId);
+
+        if (validReports.length === 0) {
+            return [];
+        }
+
+        // Build query with aliases for each report
+        let queryFields = '';
+        const variables = {};
+
+        validReports.forEach((rf, index) => {
+            const alias = `report${index}`;
+            variables[`reportCode${index}`] = rf.reportCode;
+
+            queryFields += `
+                ${alias}: report(code: $reportCode${index}) {
+                    code
+                    fights {
+                        id
+                        friendlyPlayers
+                    }
+                    masterData {
+                        actors(type: "Player") {
                             id
-                            encounterID
                             name
-                            difficulty
-                            kill
-                            startTime
-                            endTime
-                            friendlyPlayers
-                        }
-                        masterData {
-                            actors(type: "Player") {
-                                id
-                                name
-                                server
-                                type
-                                subType
-                            }
+                            server
+                            subType
                         }
                     }
+                }
+            `;
+        });
+
+        // Build variable definitions
+        let variableDefinitions = '';
+        validReports.forEach((_, index) => {
+            if (index > 0) variableDefinitions += ', ';
+            variableDefinitions += `$reportCode${index}: String!`;
+        });
+
+        const queryString = `
+            query(${variableDefinitions}) {
+                reportData {
+                    ${queryFields}
                 }
             }
         `;
 
-        const data = await this.query(queryString, { reportCode }, true);
+        const data = await this.query(queryString, variables, true);
 
-        if (!data?.reportData?.report) {
-            return null;
-        }
+        // Process results for each report
+        const results = [];
+        validReports.forEach((rf, index) => {
+            const alias = `report${index}`;
+            const report = data.reportData[alias];
 
-        return data.reportData.report;
-    }
+            if (!report) {
+                results.push([]);
+                return;
+            }
 
-    /**
-     * Get party members from a specific fight
-     */
-    async getPartyMembers(reportCode, fightId) {
-        const report = await this.getReportFights(reportCode);
+            const fight = report.fights.find(f => f.id === rf.fightId);
 
-        if (!report) {
-            return [];
-        }
+            if (!fight) {
+                results.push([]);
+                return;
+            }
 
-        const fight = report.fights.find(f => f.id === fightId);
+            // Get only players who participated in this specific fight
+            const fightPlayerIds = fight.friendlyPlayers || [];
 
-        if (!fight) {
-            return [];
-        }
+            if (fightPlayerIds.length === 0) {
+                results.push([]);
+                return;
+            }
 
-        // Get only players who participated in this specific fight
-        const fightPlayerIds = fight.friendlyPlayers || [];
+            // Get all players from the report
+            const allPlayers = report.masterData.actors;
 
-        if (fightPlayerIds.length === 0) {
-            return [];
-        }
+            // Filter to only players who were in this fight
+            const fightPlayers = allPlayers.filter(player =>
+                fightPlayerIds.includes(player.id)
+            );
 
-        // Get all players from the report
-        const allPlayers = report.masterData.actors;
+            // Filter out non-player actors (Multiple Players, Limit Break, etc.)
+            const realPlayers = fightPlayers.filter(player =>
+                player.server !== null &&
+                player.server !== undefined &&
+                player.name !== 'Multiple Players' &&
+                player.name !== 'Limit Break'
+            );
 
-        // Filter to only players who were in this fight
-        const fightPlayers = allPlayers.filter(player =>
-            fightPlayerIds.includes(player.id)
-        );
+            // Map subType (spec ID) to job name
+            const partyMembers = realPlayers.map(player => ({
+                name: player.name,
+                server: player.server,
+                job: this.getJobFromSpecId(player.subType)
+            }));
 
-        // Filter out non-player actors (Multiple Players, Limit Break, etc.)
-        const realPlayers = fightPlayers.filter(player =>
-            player.server !== null &&
-            player.server !== undefined &&
-            player.name !== 'Multiple Players' &&
-            player.name !== 'Limit Break'
-        );
+            results.push(partyMembers);
+        });
 
-        // Map subType (spec ID) to job name
-        return realPlayers.map(player => ({
-            name: player.name,
-            server: player.server,
-            job: this.getJobFromSpecId(player.subType)
-        }));
+        return results;
     }
 }

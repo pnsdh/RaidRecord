@@ -32,15 +32,15 @@ export class FFLogsAPI extends FFLogsAPICore {
         return this.characterAPI.searchCharacter(characterName, serverName, serverRegion);
     }
 
-    async getCombinedTierData(characterId, zoneId, encounterId, difficulty, partition) {
-        return this.characterAPI.getCombinedTierData(characterId, zoneId, encounterId, difficulty, partition);
+    async getBatchTierData(characterId, tiers) {
+        return this.characterAPI.getBatchTierData(characterId, tiers);
     }
 
     /**
      * Reports API methods - delegated to ReportsAPI
      */
-    async getPartyMembers(reportCode, fightId) {
-        return this.reportsAPI.getPartyMembers(reportCode, fightId);
+    async getBatchPartyMembers(reportFights) {
+        return this.reportsAPI.getBatchPartyMembers(reportFights);
     }
 
     /**
