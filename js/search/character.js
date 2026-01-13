@@ -6,7 +6,7 @@
  * Parse character search input
  * Expected format: "CharacterName ServerName"
  */
-export function parseSearchInput(input) {
+function parseSearchInput(input) {
     const parts = input.trim().split(/\s+/);
 
     if (parts.length < 2) {

@@ -46,63 +46,6 @@ export class CharacterAPI {
     }
 
     /**
-     * Get character's raid rankings for a specific zone
-     */
-    async getCharacterRankings(characterId, zoneId, difficulty, partition) {
-        const queryString = `
-            query($characterId: Int!, $zoneId: Int!, $difficulty: Int, $partition: Int) {
-                characterData {
-                    character(id: $characterId) {
-                        zoneRankings(zoneID: $zoneId, difficulty: $difficulty, partition: $partition)
-                    }
-                }
-            }
-        `;
-
-        const data = await this.query(queryString, {
-            characterId,
-            zoneId,
-            difficulty,
-            partition
-        });
-
-        return data.characterData.character.zoneRankings;
-    }
-
-    /**
-     * Get character's all parses for a specific encounter
-     */
-    async getCharacterEncounterParses(characterId, encounterId, difficulty, partition) {
-        const queryString = `
-            query($characterId: Int!, $encounterId: Int!, $difficulty: Int, $partition: Int) {
-                characterData {
-                    character(id: $characterId) {
-                        encounterRankings(encounterID: $encounterId, difficulty: $difficulty, partition: $partition)
-                    }
-                }
-            }
-        `;
-
-        const data = await this.query(queryString, {
-            characterId,
-            encounterId,
-            difficulty,
-            partition
-        });
-
-        const encounterRankings = data.characterData.character.encounterRankings;
-
-        if (!encounterRankings) {
-            return null;
-        }
-
-        // encounterRankings is JSON, parse it
-        const rankings = encounterRankings.ranks || [];
-
-        return rankings;
-    }
-
-    /**
      * Get combined data for a tier (rankings + encounter parses + all-star) in one query
      */
     async getCombinedTierData(characterId, zoneId, encounterId, difficulty, partition) {

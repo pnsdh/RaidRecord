@@ -15,7 +15,7 @@ function calculatePercentile(rank, total) {
 /**
  * Get FFLogs color based on percentile
  */
-export function getPercentileColor(percentile) {
+function getPercentileColor(percentile) {
     if (percentile >= 100) return '#e5cc80';      // Gold - rank 1
     if (percentile >= 99) return '#e268a8';       // Pink - 99-100%
     if (percentile >= 95) return '#ff8000';       // Orange - 95-99%
