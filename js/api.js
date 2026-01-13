@@ -6,7 +6,6 @@
 import { FFLogsAPICore } from './api/core.js';
 import { CharacterAPI } from './api/character.js';
 import { ReportsAPI } from './api/reports.js';
-import { STORAGE_KEYS } from './config.js';
 
 /**
  * Main FFLogs API class that combines all API functionality
@@ -43,26 +42,4 @@ export class FFLogsAPI extends FFLogsAPICore {
     async getPartyMembers(reportCode, fightId) {
         return this.reportsAPI.getPartyMembers(reportCode, fightId);
     }
-}
-
-/**
- * Initialize API client from stored credentials
- */
-export function initializeAPI() {
-    const clientId = localStorage.getItem(STORAGE_KEYS.CLIENT_ID);
-    const clientSecret = localStorage.getItem(STORAGE_KEYS.CLIENT_SECRET);
-
-    if (!clientId || !clientSecret) {
-        return null;
-    }
-
-    return new FFLogsAPI(clientId, clientSecret);
-}
-
-/**
- * Save API credentials
- */
-export function saveCredentials(clientId, clientSecret) {
-    localStorage.setItem(STORAGE_KEYS.CLIENT_ID, clientId);
-    localStorage.setItem(STORAGE_KEYS.CLIENT_SECRET, clientSecret);
 }

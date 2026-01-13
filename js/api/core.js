@@ -2,7 +2,8 @@
  * FFLogs API Core - Authentication and base query functionality
  */
 
-import { API_CONFIG, STORAGE_KEYS, TIMING } from '../config.js';
+import { API_CONFIG, STORAGE_KEYS, TIMING } from '../config/config.js';
+import { getJobFromSpecId as mapJobFromSpecId } from '../config/jobs.js';
 
 export class FFLogsAPICore {
     constructor(clientId, clientSecret) {
@@ -121,51 +122,9 @@ export class FFLogsAPICore {
 
     /**
      * Map FFLogs spec ID or spec name to job name
+     * Delegates to jobs.js utility function
      */
     getJobFromSpecId(specId) {
-        // If specId is already a string (job name), return it directly
-        if (typeof specId === 'string') {
-            // Remove any spaces and convert to the expected format
-            return specId.replace(/\s+/g, '');
-        }
-
-        // Otherwise, it's a numeric ID - map it
-        const jobMap = {
-            // Tanks
-            19: 'Paladin',
-            21: 'Warrior',
-            32: 'DarkKnight',
-            37: 'Gunbreaker',
-
-            // Healers
-            24: 'WhiteMage',
-            28: 'Scholar',
-            33: 'Astrologian',
-            40: 'Sage',
-
-            // Melee DPS
-            20: 'Monk',
-            22: 'Dragoon',
-            30: 'Ninja',
-            34: 'Samurai',
-            39: 'Reaper',
-            41: 'Viper',
-
-            // Physical Ranged DPS
-            23: 'Bard',
-            31: 'Machinist',
-            38: 'Dancer',
-
-            // Magical Ranged DPS
-            25: 'BlackMage',
-            27: 'Summoner',
-            35: 'RedMage',
-            42: 'Pictomancer',
-
-            // Limited Job
-            36: 'BlueMage'
-        };
-
-        return jobMap[specId] || 'Unknown';
+        return mapJobFromSpecId(specId);
     }
 }

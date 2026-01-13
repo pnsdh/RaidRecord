@@ -4,7 +4,7 @@
 
 import { getServerNameKR, getJobOrder } from '../constants.js';
 import { formatJobBadge } from './formatters.js';
-import { UI_CONFIG } from '../config.js';
+import { UI_CONFIG } from '../config/config.js';
 
 /**
  * Create party members HTML for tooltip

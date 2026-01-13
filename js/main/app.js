@@ -2,13 +2,13 @@
  * Main application controller
  */
 
-import { initializeAPI, saveCredentials } from '../api.js';
+import { initializeAPI, saveCredentials } from './storage.js';
 import { RaidHistorySearch, sortRaidHistory } from '../search.js';
 import { UIController } from '../ui.js';
 import { STORAGE_KEYS, APP_CONFIG } from '../constants.js';
-import { UI_CONFIG } from '../config.js';
+import { UI_CONFIG } from '../config/config.js';
 import { SettingsModal, RaidSelectionModal } from './modals.js';
-import { initializeElements, populateServerSelect, attachEventListeners } from './handlers.js';
+import { initializeElements, populateServerSelect, attachEventListeners } from './init.js';
 
 /**
  * Main App class

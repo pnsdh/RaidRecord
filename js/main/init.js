@@ -1,5 +1,6 @@
 /**
- * Event handlers and initialization utilities
+ * UI initialization utilities
+ * Handles DOM element references, initial state setup, and event listener binding
  */
 
 import { STORAGE_KEYS, KR_SERVERS } from '../constants.js';

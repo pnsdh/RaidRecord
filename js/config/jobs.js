@@ -99,3 +99,53 @@ export function getJobOrder(jobName) {
     const index = JOB_ORDER.indexOf(jobName);
     return index === -1 ? 999 : index;
 }
+
+/**
+ * Map FFLogs spec ID or spec name to job name
+ */
+export function getJobFromSpecId(specId) {
+    // If specId is already a string (job name), return it directly
+    if (typeof specId === 'string') {
+        // Remove any spaces and convert to the expected format
+        return specId.replace(/\s+/g, '');
+    }
+
+    // Otherwise, it's a numeric ID - map it
+    const jobMap = {
+        // Tanks
+        19: 'Paladin',
+        21: 'Warrior',
+        32: 'DarkKnight',
+        37: 'Gunbreaker',
+
+        // Healers
+        24: 'WhiteMage',
+        28: 'Scholar',
+        33: 'Astrologian',
+        40: 'Sage',
+
+        // Melee DPS
+        20: 'Monk',
+        22: 'Dragoon',
+        30: 'Ninja',
+        34: 'Samurai',
+        39: 'Reaper',
+        41: 'Viper',
+
+        // Physical Ranged DPS
+        23: 'Bard',
+        31: 'Machinist',
+        38: 'Dancer',
+
+        // Magical Ranged DPS
+        25: 'BlackMage',
+        27: 'Summoner',
+        35: 'RedMage',
+        42: 'Pictomancer',
+
+        // Limited Job
+        36: 'BlueMage'
+    };
+
+    return jobMap[specId] || 'Unknown';
+}
