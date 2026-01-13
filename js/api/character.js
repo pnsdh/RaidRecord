@@ -113,6 +113,8 @@ export class CharacterAPI {
             const encounterId = tier.finalEncounterId;
 
             let earliestClear = null;
+            let jobFrequency = [];
+
             if (zoneRankings) {
                 const rankingsArray = zoneRankings.rankings || [];
                 const encounterRanking = rankingsArray.find(r => r.encounter?.id === encounterId);
@@ -121,6 +123,41 @@ export class CharacterAPI {
                     if (encounterParses.length > 0) {
                         encounterParses.sort((a, b) => a.startTime - b.startTime);
                         earliestClear = encounterParses[0];
+
+                        // Calculate job frequency from all parses
+                        const jobStats = {};
+                        encounterParses.forEach((parse, index) => {
+                            // Parse.spec is a string like "BlackMage", not a numeric ID
+                            const jobSpec = parse.spec;
+                            if (jobSpec) {
+                                if (!jobStats[jobSpec]) {
+                                    jobStats[jobSpec] = {
+                                        count: 0,
+                                        mostRecentIndex: index
+                                    };
+                                }
+                                jobStats[jobSpec].count++;
+                                // Keep track of most recent occurrence (smallest index)
+                                jobStats[jobSpec].mostRecentIndex = Math.min(
+                                    jobStats[jobSpec].mostRecentIndex,
+                                    index
+                                );
+                            }
+                        });
+
+                        // Convert to array and sort by frequency (descending), then by recency (ascending index)
+                        jobFrequency = Object.entries(jobStats)
+                            .map(([spec, stats]) => ({
+                                spec: spec, // spec is already a string like "BlackMage"
+                                count: stats.count,
+                                mostRecentIndex: stats.mostRecentIndex
+                            }))
+                            .sort((a, b) => {
+                                if (a.count !== b.count) {
+                                    return b.count - a.count; // Higher count first
+                                }
+                                return a.mostRecentIndex - b.mostRecentIndex; // More recent first
+                            });
                     } else {
                         earliestClear = encounterRanking;
                     }
@@ -147,7 +184,8 @@ export class CharacterAPI {
 
             results.push({
                 earliestClear,
-                allStarData
+                allStarData,
+                jobFrequency
             });
         });
 

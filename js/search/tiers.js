@@ -10,12 +10,19 @@ import { getWeekNumber, formatDate } from '../constants.js';
 export function processTierData(api, combinedData, tier, partyMembers = []) {
     const earliestClear = combinedData.earliestClear;
     const allStarData = combinedData.allStarData;
+    const jobFrequency = combinedData.jobFrequency || [];
 
     // Extract report information from the parse record
     const reportCode = earliestClear.report?.code || null;
     const fightId = earliestClear.report?.fightID || null;
     const clearTimestamp = earliestClear.startTime || null;
     const jobSpec = earliestClear.spec || null;
+
+    // Convert job frequency specs to job names
+    const jobFrequencyData = jobFrequency.map(item => ({
+        job: api.getJobFromSpecId(item.spec),
+        count: item.count
+    }));
 
     if (!clearTimestamp) {
         return {
@@ -28,6 +35,7 @@ export function processTierData(api, combinedData, tier, partyMembers = []) {
             allStarRank: allStarData.rank,
             allStarTotal: allStarData.total,
             partyMembers: [],
+            jobFrequency: jobFrequencyData,
             reportCode: null,
             fightId: null
         };
@@ -43,6 +51,7 @@ export function processTierData(api, combinedData, tier, partyMembers = []) {
         allStarRank: allStarData.rank,
         allStarTotal: allStarData.total,
         partyMembers: partyMembers,
+        jobFrequency: jobFrequencyData,
         reportCode: reportCode,
         fightId: fightId
     };

@@ -101,8 +101,15 @@ export class FFLogsAPICore {
 
         const result = await response.json();
 
-        if (result.errors) {
+        // GraphQL can return partial data with errors
+        // Only throw if there's no data at all
+        if (result.errors && !result.data) {
             throw new Error(result.errors[0].message);
+        }
+
+        // Log errors but continue if we have partial data
+        if (result.errors) {
+            console.warn('GraphQL partial errors:', result.errors);
         }
 
         // Extract and store rate limit data if present

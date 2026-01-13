@@ -2,7 +2,7 @@
  * Tooltip utilities for party member display
  */
 
-import { getServerNameKR, getJobOrder } from '../constants.js';
+import { getServerNameKR, getJobOrder, JOB_COLORS, JOB_NAMES_KR } from '../constants.js';
 import { formatJobBadge } from './formatters.js';
 import { UI_CONFIG } from '../config/config.js';
 
@@ -37,6 +37,31 @@ export function createPartyMembersHTML(partyMembers) {
 }
 
 /**
+ * Create job frequency HTML for tooltip
+ */
+export function createJobFrequencyHTML(jobFrequency) {
+    if (!jobFrequency || jobFrequency.length === 0) {
+        return '<p style="color: var(--text-secondary);">직업 정보 없음</p>';
+    }
+
+    let html = '<p style="font-weight: 600; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">클리어 직업</p>';
+
+    for (const item of jobFrequency) {
+        const job = item.job;
+        const color = JOB_COLORS[job] || '#999';
+        const jobName = JOB_NAMES_KR[job] || job;
+        html += `
+            <div class="job-frequency-item" style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span style="color: ${color}; font-weight: 500;">${jobName}</span>
+                <span style="color: var(--text-secondary); font-size: 0.9em;">(${item.count}회)</span>
+            </div>
+        `;
+    }
+
+    return html;
+}
+
+/**
  * Attach event listeners for tooltips
  */
 export function attachTooltipListeners() {
@@ -62,32 +87,68 @@ export function attachTooltipListeners() {
             }
         });
 
-        row.addEventListener('mouseenter', (e) => {
-            const partyData = row.getAttribute('data-party');
-            if (!partyData) return;
+        // Get only the first 3 cells (레이드, 주, 날짜) for party member tooltip
+        const partyTooltipCells = row.querySelectorAll('td:nth-child(1), td:nth-child(2), td:nth-child(3)');
 
-            try {
-                const partyMembers = JSON.parse(partyData);
-                const partyHTML = createPartyMembersHTML(partyMembers);
-                tooltip.innerHTML = partyHTML;
-                tooltip.style.display = 'block';
+        partyTooltipCells.forEach(cell => {
+            cell.addEventListener('mouseenter', (e) => {
+                const partyData = row.getAttribute('data-party');
+                if (!partyData) return;
 
-                // Position tooltip at mouse position
-                updateTooltipPosition(e, tooltip);
-            } catch (error) {
-                // Silent fail
-            }
+                try {
+                    const partyMembers = JSON.parse(partyData);
+                    const partyHTML = createPartyMembersHTML(partyMembers);
+                    tooltip.innerHTML = partyHTML;
+                    tooltip.style.display = 'block';
+
+                    // Position tooltip at mouse position
+                    updateTooltipPosition(e, tooltip);
+                } catch (error) {
+                    // Silent fail
+                }
+            });
+
+            cell.addEventListener('mousemove', (e) => {
+                if (tooltip.style.display === 'block') {
+                    updateTooltipPosition(e, tooltip);
+                }
+            });
+
+            cell.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
         });
 
-        row.addEventListener('mousemove', (e) => {
-            if (tooltip.style.display === 'block') {
-                updateTooltipPosition(e, tooltip);
-            }
-        });
+        // Get the 4th cell (직업) for job frequency tooltip
+        const jobCell = row.querySelector('td:nth-child(4)');
+        if (jobCell) {
+            jobCell.addEventListener('mouseenter', (e) => {
+                const jobsData = row.getAttribute('data-jobs');
+                if (!jobsData) return;
 
-        row.addEventListener('mouseleave', () => {
-            tooltip.style.display = 'none';
-        });
+                try {
+                    const jobFrequency = JSON.parse(jobsData);
+                    const jobHTML = createJobFrequencyHTML(jobFrequency);
+                    tooltip.innerHTML = jobHTML;
+                    tooltip.style.display = 'block';
+
+                    // Position tooltip at mouse position
+                    updateTooltipPosition(e, tooltip);
+                } catch (error) {
+                    // Silent fail
+                }
+            });
+
+            jobCell.addEventListener('mousemove', (e) => {
+                if (tooltip.style.display === 'block') {
+                    updateTooltipPosition(e, tooltip);
+                }
+            });
+
+            jobCell.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        }
     });
 }
 

@@ -230,7 +230,14 @@ export class UIController {
         const bossCount = tier.encounterCount;
 
         // Job display (full name with color)
-        const jobText = formatJobText(clearData.job);
+        let jobText = formatJobText(clearData.job);
+
+        // Add additional job count indicator if multiple jobs were used
+        const jobFrequency = clearData.jobFrequency || [];
+        if (jobFrequency.length > 1) {
+            const additionalJobCount = jobFrequency.length - 1;
+            jobText += ` <span style="color: var(--text-secondary); font-size: 0.85em;">+${additionalJobCount}</span>`;
+        }
 
         // Week badge
         const weekBadge = formatWeekBadge(clearData.clearWeek);
@@ -247,7 +254,7 @@ export class UIController {
         );
 
         return `
-            <tr class="raid-row" data-report="${clearData.reportCode || ''}" data-fight="${clearData.fightId || ''}" data-party='${JSON.stringify(clearData.partyMembers || []).replace(/'/g, "&apos;")}'>
+            <tr class="raid-row" data-report="${clearData.reportCode || ''}" data-fight="${clearData.fightId || ''}" data-party='${JSON.stringify(clearData.partyMembers || []).replace(/'/g, "&apos;")}' data-jobs='${JSON.stringify(clearData.jobFrequency || []).replace(/'/g, "&apos;")}'>
                 <td>${raidNameBadge}</td>
                 <td>${weekBadge}</td>
                 <td class="date-col">${dateText}</td>
