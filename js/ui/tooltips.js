@@ -60,29 +60,65 @@ export function createRaidInfoHTML(tier) {
 }
 
 /**
- * Get encounter floor name
+ * Get encounter floor name by floor number (0-based index)
  */
-function getFloorName(index, totalCount) {
+function getFloorName(floorIndex, totalCount) {
     if (totalCount === 1) {
         // Ultimate raids: show "-" instead of floor number
         return '-';
     } else if (totalCount === 5) {
         // 5 encounters: 1층, 2층, 3층, 4전, 4후
         const floorNames = ['1층', '2층', '3층', '4전', '4후'];
-        return floorNames[index] || `${index + 1}층`;
+        return floorNames[floorIndex] || `${floorIndex + 1}층`;
     } else {
         // 4 encounters: 1층, 2층, 3층, 4층
-        return `${index + 1}층`;
+        return `${floorIndex + 1}층`;
     }
+}
+
+/**
+ * Build complete floor data array with all encounters
+ * Maps encounter data to correct floor positions, fills missing with null
+ */
+function buildCompleteFloorData(encounterAllStars, tier) {
+    const encounterCount = tier.encounterCount;
+    const finalEncounterId = tier.finalEncounterId;
+
+    // Calculate first encounter ID (final - count + 1)
+    const firstEncounterId = finalEncounterId - encounterCount + 1;
+
+    // Create a map of encounter ID to encounter data
+    const encounterMap = new Map();
+    encounterAllStars.forEach(encounter => {
+        encounterMap.set(encounter.encounterId, encounter);
+    });
+
+    // Build complete array with all floors
+    const completeData = [];
+    for (let i = 0; i < encounterCount; i++) {
+        const encounterId = firstEncounterId + i;
+        const encounterData = encounterMap.get(encounterId);
+
+        completeData.push({
+            floorIndex: i,
+            floorName: getFloorName(i, encounterCount),
+            data: encounterData || null  // null if no data for this floor
+        });
+    }
+
+    return completeData;
 }
 
 /**
  * Create encounter all-star scores tooltip HTML (올스타 셀용)
  */
-export function createEncounterScoresHTML(encounterAllStars) {
-    if (!encounterAllStars || encounterAllStars.length === 0) {
+export function createEncounterScoresHTML(encounterAllStars, tier) {
+    if (!tier) {
         return '<p style="color: var(--text-secondary);">층별 정보 없음</p>';
     }
+
+    // Build complete floor data with all encounters
+    const completeFloorData = buildCompleteFloorData(encounterAllStars || [], tier);
 
     let html = '<table style="width: 100%; border-collapse: collapse;">';
     html += '<thead><tr>';
@@ -92,18 +128,30 @@ export function createEncounterScoresHTML(encounterAllStars) {
     html += '</tr></thead>';
     html += '<tbody>';
 
-    encounterAllStars.forEach((encounter, index) => {
-        const floorName = getFloorName(index, encounterAllStars.length);
-        const points = encounter.points ? encounter.points.toFixed(2) : '0.00';
-        const job = encounter.job || 'Unknown';
-        const jobColor = JOB_COLORS[job] || '#999';
-        const jobName = JOB_NAMES_KR[job] || job;
+    completeFloorData.forEach(floor => {
+        const floorName = floor.floorName;
+        const encounter = floor.data;
 
-        html += '<tr>';
-        html += `<td style="padding: 4px 8px 4px 0; text-align: center;">${floorName}</td>`;
-        html += `<td style="padding: 4px 8px; text-align: center; color: #d1fa99;">${points}</td>`;
-        html += `<td style="padding: 4px 0 4px 8px; text-align: center; color: ${jobColor}; font-weight: 500;">${jobName}</td>`;
-        html += '</tr>';
+        if (!encounter) {
+            // No data for this floor
+            html += '<tr>';
+            html += `<td style="padding: 4px 8px 4px 0; text-align: center;">${floorName}</td>`;
+            html += `<td style="padding: 4px 8px; text-align: center; color: var(--text-secondary);">-</td>`;
+            html += `<td style="padding: 4px 0 4px 8px; text-align: center; color: var(--text-secondary);">-</td>`;
+            html += '</tr>';
+        } else {
+            // Has data for this floor
+            const points = encounter.points ? encounter.points.toFixed(2) : '0.00';
+            const job = encounter.job || 'Unknown';
+            const jobColor = JOB_COLORS[job] || '#999';
+            const jobName = JOB_NAMES_KR[job] || job;
+
+            html += '<tr>';
+            html += `<td style="padding: 4px 8px 4px 0; text-align: center;">${floorName}</td>`;
+            html += `<td style="padding: 4px 8px; text-align: center; color: #d1fa99;">${points}</td>`;
+            html += `<td style="padding: 4px 0 4px 8px; text-align: center; color: ${jobColor}; font-weight: 500;">${jobName}</td>`;
+            html += '</tr>';
+        }
     });
 
     html += '</tbody>';
@@ -115,10 +163,13 @@ export function createEncounterScoresHTML(encounterAllStars) {
 /**
  * Create encounter percentiles tooltip HTML (백분위 셀용)
  */
-export function createEncounterPercentilesHTML(encounterAllStars) {
-    if (!encounterAllStars || encounterAllStars.length === 0) {
+export function createEncounterPercentilesHTML(encounterAllStars, tier) {
+    if (!tier) {
         return '<p style="color: var(--text-secondary);">층별 정보 없음</p>';
     }
+
+    // Build complete floor data with all encounters
+    const completeFloorData = buildCompleteFloorData(encounterAllStars || [], tier);
 
     let html = '<table style="width: 100%; border-collapse: collapse;">';
     html += '<thead><tr>';
@@ -128,25 +179,36 @@ export function createEncounterPercentilesHTML(encounterAllStars) {
     html += '</tr></thead>';
     html += '<tbody>';
 
-    encounterAllStars.forEach((encounter, index) => {
-        const floorName = getFloorName(index, encounterAllStars.length);
+    completeFloorData.forEach(floor => {
+        const floorName = floor.floorName;
+        const encounter = floor.data;
 
-        // Calculate percentile with 2 decimal places
-        let percentile = 0;
-        if (encounter.rank && encounter.total) {
-            percentile = (((encounter.total - encounter.rank + 1) / encounter.total) * 100).toFixed(2);
+        if (!encounter) {
+            // No data for this floor
+            html += '<tr>';
+            html += `<td style="padding: 4px 8px 4px 0; text-align: center;">${floorName}</td>`;
+            html += `<td style="padding: 4px 8px; text-align: center; color: var(--text-secondary);">-</td>`;
+            html += `<td style="padding: 4px 0 4px 8px; text-align: center; color: var(--text-secondary);">-</td>`;
+            html += '</tr>';
+        } else {
+            // Has data for this floor
+            // Calculate percentile with 2 decimal places
+            let percentile = 0;
+            if (encounter.rank && encounter.total) {
+                percentile = (((encounter.total - encounter.rank + 1) / encounter.total) * 100).toFixed(2);
+            }
+            const percentileColor = getPercentileColor(parseFloat(percentile));
+
+            const job = encounter.job || 'Unknown';
+            const jobColor = JOB_COLORS[job] || '#999';
+            const jobName = JOB_NAMES_KR[job] || job;
+
+            html += '<tr>';
+            html += `<td style="padding: 4px 8px 4px 0; text-align: center;">${floorName}</td>`;
+            html += `<td style="padding: 4px 8px; text-align: center; color: ${percentileColor};">${percentile}%</td>`;
+            html += `<td style="padding: 4px 0 4px 8px; text-align: center; color: ${jobColor}; font-weight: 500;">${jobName}</td>`;
+            html += '</tr>';
         }
-        const percentileColor = getPercentileColor(parseFloat(percentile));
-
-        const job = encounter.job || 'Unknown';
-        const jobColor = JOB_COLORS[job] || '#999';
-        const jobName = JOB_NAMES_KR[job] || job;
-
-        html += '<tr>';
-        html += `<td style="padding: 4px 8px 4px 0; text-align: center;">${floorName}</td>`;
-        html += `<td style="padding: 4px 8px; text-align: center; color: ${percentileColor};">${percentile}%</td>`;
-        html += `<td style="padding: 4px 0 4px 8px; text-align: center; color: ${jobColor}; font-weight: 500;">${jobName}</td>`;
-        html += '</tr>';
     });
 
     html += '</tbody>';
@@ -158,10 +220,13 @@ export function createEncounterPercentilesHTML(encounterAllStars) {
 /**
  * Create encounter ranks tooltip HTML (순위 셀용)
  */
-export function createEncounterRanksHTML(encounterAllStars) {
-    if (!encounterAllStars || encounterAllStars.length === 0) {
+export function createEncounterRanksHTML(encounterAllStars, tier) {
+    if (!tier) {
         return '<p style="color: var(--text-secondary);">층별 정보 없음</p>';
     }
+
+    // Build complete floor data with all encounters
+    const completeFloorData = buildCompleteFloorData(encounterAllStars || [], tier);
 
     let html = '<table style="width: 100%; border-collapse: collapse;">';
     html += '<thead><tr>';
@@ -171,28 +236,39 @@ export function createEncounterRanksHTML(encounterAllStars) {
     html += '</tr></thead>';
     html += '<tbody>';
 
-    encounterAllStars.forEach((encounter, index) => {
-        const floorName = getFloorName(index, encounterAllStars.length);
+    completeFloorData.forEach(floor => {
+        const floorName = floor.floorName;
+        const encounter = floor.data;
 
-        // Calculate percentile for color (using raw value for color calculation)
-        let percentile = 0;
-        if (encounter.rank && encounter.total) {
-            percentile = ((encounter.total - encounter.rank + 1) / encounter.total) * 100;
+        if (!encounter) {
+            // No data for this floor
+            html += '<tr>';
+            html += `<td style="padding: 4px 8px 4px 0; text-align: center;">${floorName}</td>`;
+            html += `<td style="padding: 4px 8px; text-align: center; color: var(--text-secondary);">-</td>`;
+            html += `<td style="padding: 4px 0 4px 8px; text-align: center; color: var(--text-secondary);">-</td>`;
+            html += '</tr>';
+        } else {
+            // Has data for this floor
+            // Calculate percentile for color (using raw value for color calculation)
+            let percentile = 0;
+            if (encounter.rank && encounter.total) {
+                percentile = ((encounter.total - encounter.rank + 1) / encounter.total) * 100;
+            }
+            const percentileColor = getPercentileColor(percentile);
+
+            const rank = encounter.rank ? encounter.rank.toLocaleString('en-US') : '-';
+            const total = encounter.total ? encounter.total.toLocaleString('en-US') : '-';
+
+            const job = encounter.job || 'Unknown';
+            const jobColor = JOB_COLORS[job] || '#999';
+            const jobName = JOB_NAMES_KR[job] || job;
+
+            html += '<tr>';
+            html += `<td style="padding: 4px 8px 4px 0; text-align: center;">${floorName}</td>`;
+            html += `<td style="padding: 4px 8px; text-align: center;"><span style="color: ${percentileColor};">#${rank}</span> <span style="color: var(--text-secondary);">/ ${total}</span></td>`;
+            html += `<td style="padding: 4px 0 4px 8px; text-align: center; color: ${jobColor}; font-weight: 500;">${jobName}</td>`;
+            html += '</tr>';
         }
-        const percentileColor = getPercentileColor(percentile);
-
-        const rank = encounter.rank ? encounter.rank.toLocaleString('en-US') : '-';
-        const total = encounter.total ? encounter.total.toLocaleString('en-US') : '-';
-
-        const job = encounter.job || 'Unknown';
-        const jobColor = JOB_COLORS[job] || '#999';
-        const jobName = JOB_NAMES_KR[job] || job;
-
-        html += '<tr>';
-        html += `<td style="padding: 4px 8px 4px 0; text-align: center;">${floorName}</td>`;
-        html += `<td style="padding: 4px 8px; text-align: center;"><span style="color: ${percentileColor};">#${rank}</span> <span style="color: var(--text-secondary);">/ ${total}</span></td>`;
-        html += `<td style="padding: 4px 0 4px 8px; text-align: center; color: ${jobColor}; font-weight: 500;">${jobName}</td>`;
-        html += '</tr>';
     });
 
     html += '</tbody>';
@@ -459,21 +535,19 @@ export function attachTooltipListeners() {
             scoreCell.addEventListener('mouseenter', (e) => {
                 const encountersData = row.getAttribute('data-encounters');
                 const tierData = row.getAttribute('data-tier');
-                if (!encountersData || !tierData) return;
+                if (!tierData) return;
 
                 try {
-                    const encounters = JSON.parse(encountersData);
+                    const encounters = JSON.parse(encountersData || '[]');
                     const tier = JSON.parse(tierData);
 
                     // Show tooltip for both SAVAGE and ULTIMATE raids
-                    if (encounters.length > 0) {
-                        const encounterHTML = createEncounterScoresHTML(encounters);
-                        tooltip.innerHTML = encounterHTML;
-                        tooltip.style.display = 'block';
+                    const encounterHTML = createEncounterScoresHTML(encounters, tier);
+                    tooltip.innerHTML = encounterHTML;
+                    tooltip.style.display = 'block';
 
-                        // Position tooltip at mouse position
-                        updateTooltipPosition(e, tooltip);
-                    }
+                    // Position tooltip at mouse position
+                    updateTooltipPosition(e, tooltip);
                 } catch (error) {
                     // Silent fail
                 }
@@ -496,21 +570,19 @@ export function attachTooltipListeners() {
             percentileCell.addEventListener('mouseenter', (e) => {
                 const encountersData = row.getAttribute('data-encounters');
                 const tierData = row.getAttribute('data-tier');
-                if (!encountersData || !tierData) return;
+                if (!tierData) return;
 
                 try {
-                    const encounters = JSON.parse(encountersData);
+                    const encounters = JSON.parse(encountersData || '[]');
                     const tier = JSON.parse(tierData);
 
                     // Show tooltip for both SAVAGE and ULTIMATE raids
-                    if (encounters.length > 0) {
-                        const encounterHTML = createEncounterPercentilesHTML(encounters);
-                        tooltip.innerHTML = encounterHTML;
-                        tooltip.style.display = 'block';
+                    const encounterHTML = createEncounterPercentilesHTML(encounters, tier);
+                    tooltip.innerHTML = encounterHTML;
+                    tooltip.style.display = 'block';
 
-                        // Position tooltip at mouse position
-                        updateTooltipPosition(e, tooltip);
-                    }
+                    // Position tooltip at mouse position
+                    updateTooltipPosition(e, tooltip);
                 } catch (error) {
                     // Silent fail
                 }
@@ -533,21 +605,19 @@ export function attachTooltipListeners() {
             rankCell.addEventListener('mouseenter', (e) => {
                 const encountersData = row.getAttribute('data-encounters');
                 const tierData = row.getAttribute('data-tier');
-                if (!encountersData || !tierData) return;
+                if (!tierData) return;
 
                 try {
-                    const encounters = JSON.parse(encountersData);
+                    const encounters = JSON.parse(encountersData || '[]');
                     const tier = JSON.parse(tierData);
 
                     // Show tooltip for both SAVAGE and ULTIMATE raids
-                    if (encounters.length > 0) {
-                        const encounterHTML = createEncounterRanksHTML(encounters);
-                        tooltip.innerHTML = encounterHTML;
-                        tooltip.style.display = 'block';
+                    const encounterHTML = createEncounterRanksHTML(encounters, tier);
+                    tooltip.innerHTML = encounterHTML;
+                    tooltip.style.display = 'block';
 
-                        // Position tooltip at mouse position
-                        updateTooltipPosition(e, tooltip);
-                    }
+                    // Position tooltip at mouse position
+                    updateTooltipPosition(e, tooltip);
                 } catch (error) {
                     // Silent fail
                 }
