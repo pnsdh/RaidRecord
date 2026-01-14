@@ -3,7 +3,7 @@
  */
 
 import { getServerNameKR, getJobOrder, JOB_COLORS, JOB_NAMES_KR } from '../constants.js';
-import { formatJobBadge } from './formatters.js';
+import { formatJobBadge, getPercentileColor } from './formatters.js';
 import { UI_CONFIG } from '../config/config.js';
 
 /**
@@ -63,26 +63,17 @@ export function createRaidInfoHTML(tier) {
  * Get encounter floor name
  */
 function getFloorName(index, totalCount) {
-    if (totalCount === 5) {
-        // 5 encounters: 1층, 2층, 3층, 4층 전반, 4층 후반
-        const floorNames = ['1층', '2층', '3층', '4층 전반', '4층 후반'];
+    if (totalCount === 1) {
+        // Ultimate raids: show "-" instead of floor number
+        return '-';
+    } else if (totalCount === 5) {
+        // 5 encounters: 1층, 2층, 3층, 4전, 4후
+        const floorNames = ['1층', '2층', '3층', '4전', '4후'];
         return floorNames[index] || `${index + 1}층`;
     } else {
-        // 4 encounters or 1 encounter (Ultimate): 1층, 2층, 3층, 4층
+        // 4 encounters: 1층, 2층, 3층, 4층
         return `${index + 1}층`;
     }
-}
-
-/**
- * Get percentile color (same as main table)
- */
-function getPercentileColor(percentile) {
-    if (percentile >= 99) return '#e268a8';
-    if (percentile >= 95) return '#ff8000';
-    if (percentile >= 75) return '#a335ee';
-    if (percentile >= 50) return '#0070dd';
-    if (percentile >= 25) return '#1eff00';
-    return '#666666';
 }
 
 /**
@@ -140,12 +131,12 @@ export function createEncounterPercentilesHTML(encounterAllStars) {
     encounterAllStars.forEach((encounter, index) => {
         const floorName = getFloorName(index, encounterAllStars.length);
 
-        // Calculate percentile
+        // Calculate percentile with 2 decimal places
         let percentile = 0;
         if (encounter.rank && encounter.total) {
-            percentile = Math.floor(((encounter.total - encounter.rank + 1) / encounter.total) * 100);
+            percentile = (((encounter.total - encounter.rank + 1) / encounter.total) * 100).toFixed(2);
         }
-        const percentileColor = getPercentileColor(percentile);
+        const percentileColor = getPercentileColor(parseFloat(percentile));
 
         const job = encounter.job || 'Unknown';
         const jobColor = JOB_COLORS[job] || '#999';
@@ -183,10 +174,10 @@ export function createEncounterRanksHTML(encounterAllStars) {
     encounterAllStars.forEach((encounter, index) => {
         const floorName = getFloorName(index, encounterAllStars.length);
 
-        // Calculate percentile for color
+        // Calculate percentile for color (using raw value for color calculation)
         let percentile = 0;
         if (encounter.rank && encounter.total) {
-            percentile = Math.floor(((encounter.total - encounter.rank + 1) / encounter.total) * 100);
+            percentile = ((encounter.total - encounter.rank + 1) / encounter.total) * 100;
         }
         const percentileColor = getPercentileColor(percentile);
 
@@ -474,8 +465,8 @@ export function attachTooltipListeners() {
                     const encounters = JSON.parse(encountersData);
                     const tier = JSON.parse(tierData);
 
-                    // Only show tooltip for SAVAGE raids (multiple encounters)
-                    if (tier.type === 'SAVAGE' && encounters.length > 0) {
+                    // Show tooltip for both SAVAGE and ULTIMATE raids
+                    if (encounters.length > 0) {
                         const encounterHTML = createEncounterScoresHTML(encounters);
                         tooltip.innerHTML = encounterHTML;
                         tooltip.style.display = 'block';
@@ -511,8 +502,8 @@ export function attachTooltipListeners() {
                     const encounters = JSON.parse(encountersData);
                     const tier = JSON.parse(tierData);
 
-                    // Only show tooltip for SAVAGE raids (multiple encounters)
-                    if (tier.type === 'SAVAGE' && encounters.length > 0) {
+                    // Show tooltip for both SAVAGE and ULTIMATE raids
+                    if (encounters.length > 0) {
                         const encounterHTML = createEncounterPercentilesHTML(encounters);
                         tooltip.innerHTML = encounterHTML;
                         tooltip.style.display = 'block';
@@ -548,8 +539,8 @@ export function attachTooltipListeners() {
                     const encounters = JSON.parse(encountersData);
                     const tier = JSON.parse(tierData);
 
-                    // Only show tooltip for SAVAGE raids (multiple encounters)
-                    if (tier.type === 'SAVAGE' && encounters.length > 0) {
+                    // Show tooltip for both SAVAGE and ULTIMATE raids
+                    if (encounters.length > 0) {
                         const encounterHTML = createEncounterRanksHTML(encounters);
                         tooltip.innerHTML = encounterHTML;
                         tooltip.style.display = 'block';
