@@ -4,7 +4,7 @@
 
 import { getServerNameKR, JOB_COLORS } from '../constants.js';
 import { attachTooltipListeners } from './tooltips.js';
-import { formatJobText, formatWeekBadge, formatAllStarScore, formatTierBadge } from './formatters.js';
+import { formatJobText, formatWeekBadge, formatAllStarScore, formatTierBadge, formatNumber } from './formatters.js';
 
 /**
  * UI Controller for rendering raid history
@@ -269,8 +269,8 @@ export class UIController {
         const { limitPerHour, pointsSpentThisHour, pointsResetIn } = rateLimitData;
         const usagePercent = (pointsSpentThisHour / limitPerHour) * 100;
 
-        // Update value
-        this.apiUsageValue.textContent = `${pointsSpentThisHour} / ${limitPerHour} (${usagePercent.toFixed(1)}%)`;
+        // Update value with formatted numbers
+        this.apiUsageValue.textContent = `${formatNumber(pointsSpentThisHour)} / ${formatNumber(limitPerHour)} (${Math.round(usagePercent)}%)`;
 
         // Update color based on usage
         this.apiUsageValue.className = 'usage-value';

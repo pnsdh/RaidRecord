@@ -6,6 +6,14 @@
 import { JOB_COLORS, JOB_NAMES_KR, JOB_ABBR_KR } from '../constants.js';
 
 /**
+ * Format number with thousand separators (e.g., 3600 -> 3,600)
+ */
+export function formatNumber(num) {
+    if (num == null || isNaN(num)) return '0';
+    return Math.round(num).toLocaleString('en-US');
+}
+
+/**
  * Calculate percentile from rank and total
  */
 function calculatePercentile(rank, total) {
@@ -88,7 +96,7 @@ export function formatAllStarScore(points, rank, total, bossCount) {
     const scoreColor = getPercentileColor(percentile);
 
     const scoreText = `<span style="color: ${scoreColor};">${normalizedScore}</span>`;
-    const rankText = `#${rank} / ${total}`;
+    const rankText = `#${formatNumber(rank)} / ${formatNumber(total)}`;
 
     return { scoreText, rankText };
 }
