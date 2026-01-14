@@ -16,8 +16,6 @@ export class UIController {
         this.characterName = document.getElementById('characterName');
         this.loadingSection = document.getElementById('loadingSection');
         this.loadingText = document.getElementById('loadingText');
-        this.progressContainer = document.getElementById('progressContainer');
-        this.progressFill = document.getElementById('progressFill');
         this.progressText = document.getElementById('progressText');
         this.errorSection = document.getElementById('errorSection');
         this.errorMessage = document.getElementById('errorMessage');
@@ -62,7 +60,7 @@ export class UIController {
     showLoading(message = '캐릭터 데이터를 불러오는 중...') {
         this.hideAll();
         this.loadingText.textContent = message;
-        this.progressContainer.style.display = 'none';
+        this.progressText.style.display = 'none';
         this.loadingSection.style.display = 'block';
     }
 
@@ -70,17 +68,11 @@ export class UIController {
      * Update search progress
      */
     updateProgress(progress) {
-        const { current, total, tierName, expansion } = progress;
-        const percentage = (current / total) * 100;
+        const { current, total, message } = progress;
 
-        // Show progress container
-        this.progressContainer.style.display = 'block';
-
-        // Update progress bar
-        this.progressFill.style.width = `${percentage}%`;
-
-        // Update progress text
-        this.progressText.textContent = `${expansion} - ${tierName} 검색 중... (${current}/${total})`;
+        // Show and update progress text
+        this.progressText.style.display = 'block';
+        this.progressText.textContent = `${message} (${current}/${total})`;
     }
 
     /**

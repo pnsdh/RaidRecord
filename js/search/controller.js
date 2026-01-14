@@ -87,10 +87,9 @@ export class RaidHistorySearch {
             // Report progress: fetching raid data
             if (this.progressCallback) {
                 this.progressCallback({
-                    current: 0,
-                    total: 1,
-                    tierName: '레이드 데이터',
-                    expansion: '조회 중'
+                    current: 1,
+                    total: 2,
+                    message: '레이드 클리어 기록 조회 중'
                 });
             }
 
@@ -117,10 +116,9 @@ export class RaidHistorySearch {
             // Report progress: fetching party members
             if (this.progressCallback) {
                 this.progressCallback({
-                    current: 1,
-                    total: 1,
-                    tierName: '파티 정보',
-                    expansion: '조회 중'
+                    current: 2,
+                    total: 2,
+                    message: '파티 멤버 정보 조회 중'
                 });
             }
 
