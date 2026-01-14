@@ -182,10 +182,34 @@ export class CharacterAPI {
                 }
             }
 
+            // Extract per-encounter all-star data
+            const encounterAllStars = [];
+            if (zoneRankings) {
+                const rankingsArray = zoneRankings.rankings || [];
+                // Sort by encounter ID to maintain order
+                rankingsArray.sort((a, b) => (a.encounter?.id || 0) - (b.encounter?.id || 0));
+
+                rankingsArray.forEach(ranking => {
+                    if (ranking.encounter && ranking.allStars) {
+                        // allStars is an object, not an array
+                        const allStars = ranking.allStars;
+                        encounterAllStars.push({
+                            encounterId: ranking.encounter.id,
+                            encounterName: ranking.encounter.name,
+                            spec: ranking.spec || ranking.bestSpec || null,
+                            points: allStars.points || 0,
+                            rank: allStars.rank || null,
+                            total: allStars.total || null
+                        });
+                    }
+                });
+            }
+
             results.push({
                 earliestClear,
                 allStarData,
-                jobFrequency
+                jobFrequency,
+                encounterAllStars
             });
         });
 

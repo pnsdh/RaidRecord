@@ -186,12 +186,13 @@ export class UIController {
             <table class="results-table">
                 <thead>
                     <tr>
-                        <th>레이드</th>
-                        <th>주</th>
+                        <th class="tooltip-header">레이드<span class="header-tooltip">모든 레이드는 흔히 '현역'이라고 부르는 첫번째 파티션만 집계합니다.<br>예를 들어, 영웅 난이도의 경우 짝수 패치 데이터만 취합하며, 홀수는 취합하지 않습니다.</span></th>
+                        <th class="tooltip-header">주차<span class="header-tooltip">화요일 5시를 기점으로 클리어 주차를 구분합니다.<br>화요일 5시 전에 입장하여 화요일 5시 이후 클리어 한 경우 올바르게 주차가 표시되지 않을 수 있으니 유의해주세요.</span></th>
                         <th class="date-col">날짜</th>
-                        <th class="tooltip-header">직업<span class="header-tooltip">최초로 최종층을 클리어한 직업을 표시합니다. 올스타 직업과 다를 수 있습니다.</span></th>
-                        <th class="tooltip-header">점수<span class="header-tooltip">모든 층의 올스타 점수를 합산하여 120점 만점으로 표준화한 점수입니다.</span></th>
-                        <th class="rank-col">순위</th>
+                        <th class="tooltip-header">직업<span class="header-tooltip">최초로 최종층을 클리어한 직업을 표시합니다.<br>올스타 직업과 다를 수 있습니다.<br>다른 직업으로도 클리어한 경우, +N으로 직업의 가짓수가 표현됩니다.<br>커서를 올려 더 자세한 정보를 확인할 수 있습니다.</span></th>
+                        <th class="tooltip-header">올스타<span class="header-tooltip">모든 층의 올스타 점수를 합산하여 120점 만점으로 표준화한 점수입니다.</span></th>
+                        <th class="tooltip-header">백분위<span class="header-tooltip">올스타 기준의 백분위입니다.<br>소숫점은 버림하고 표기하였습니다.</span></th>
+                        <th class="tooltip-header rank-col">순위<span class="header-tooltip">올스타 기준의 순위입니다.</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -238,7 +239,7 @@ export class UIController {
         const dateText = (clearData.clearDate && clearData.clearDate !== 'Unknown') ? clearData.clearDate : '-';
 
         // Calculate normalized all-star score and separate rank
-        const { scoreText, rankText } = formatAllStarScore(
+        const { scoreText, percentileText, rankText } = formatAllStarScore(
             clearData.allStarPoints,
             clearData.allStarRank,
             clearData.allStarTotal,
@@ -246,12 +247,13 @@ export class UIController {
         );
 
         return `
-            <tr class="raid-row" data-report="${clearData.reportCode || ''}" data-fight="${clearData.fightId || ''}" data-party='${JSON.stringify(clearData.partyMembers || []).replace(/'/g, "&apos;")}' data-jobs='${JSON.stringify(clearData.jobFrequency || []).replace(/'/g, "&apos;")}'>
+            <tr class="raid-row" data-report="${clearData.reportCode || ''}" data-fight="${clearData.fightId || ''}" data-timestamp="${clearData.clearTimestamp || ''}" data-tier='${JSON.stringify(tier).replace(/'/g, "&apos;")}' data-encounters='${JSON.stringify(clearData.encounterAllStars || []).replace(/'/g, "&apos;")}' data-party='${JSON.stringify(clearData.partyMembers || []).replace(/'/g, "&apos;")}' data-jobs='${JSON.stringify(clearData.jobFrequency || []).replace(/'/g, "&apos;")}'>
                 <td>${raidNameBadge}</td>
                 <td>${weekBadge}</td>
                 <td class="date-col">${dateText}</td>
                 <td>${jobText}</td>
                 <td>${scoreText}</td>
+                <td>${percentileText}</td>
                 <td class="rank-col">${rankText}</td>
             </tr>
         `;

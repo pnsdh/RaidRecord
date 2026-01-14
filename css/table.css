@@ -76,7 +76,7 @@
 
 .header-tooltip {
     display: none;
-    position: absolute;
+    position: fixed;
     z-index: 1000;
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
@@ -86,14 +86,11 @@
     max-width: 300px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     white-space: normal;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-top: 0.5rem;
     font-size: 0.85rem;
     font-weight: normal;
     color: var(--text-secondary);
     text-align: left;
+    pointer-events: none;
 }
 
 .tooltip-header:hover .header-tooltip {

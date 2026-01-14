@@ -11,6 +11,7 @@ export function processTierData(api, combinedData, tier, partyMembers = []) {
     const earliestClear = combinedData.earliestClear;
     const allStarData = combinedData.allStarData;
     const jobFrequency = combinedData.jobFrequency || [];
+    const encounterAllStars = combinedData.encounterAllStars || [];
 
     // Extract report information from the parse record
     const reportCode = earliestClear.report?.code || null;
@@ -24,6 +25,16 @@ export function processTierData(api, combinedData, tier, partyMembers = []) {
         count: item.count
     }));
 
+    // Convert encounter all-star specs to job names
+    const encounterAllStarsData = encounterAllStars.map(item => ({
+        encounterId: item.encounterId,
+        encounterName: item.encounterName,
+        job: item.spec ? api.getJobFromSpecId(item.spec) : 'Unknown',
+        points: item.points,
+        rank: item.rank,
+        total: item.total
+    }));
+
     if (!clearTimestamp) {
         return {
             encounterName: '',
@@ -34,6 +45,7 @@ export function processTierData(api, combinedData, tier, partyMembers = []) {
             allStarPoints: allStarData.points,
             allStarRank: allStarData.rank,
             allStarTotal: allStarData.total,
+            encounterAllStars: encounterAllStarsData,
             partyMembers: [],
             jobFrequency: jobFrequencyData,
             reportCode: null,
@@ -50,6 +62,7 @@ export function processTierData(api, combinedData, tier, partyMembers = []) {
         allStarPoints: allStarData.points,
         allStarRank: allStarData.rank,
         allStarTotal: allStarData.total,
+        encounterAllStars: encounterAllStarsData,
         partyMembers: partyMembers,
         jobFrequency: jobFrequencyData,
         reportCode: reportCode,

@@ -84,6 +84,7 @@ export function formatAllStarScore(points, rank, total, bossCount) {
     if (!points || points === 0 || !rank || !total) {
         return {
             scoreText: '<span style="color: var(--text-secondary);">-</span>',
+            percentileText: '-',
             rankText: '-'
         };
     }
@@ -95,10 +96,11 @@ export function formatAllStarScore(points, rank, total, bossCount) {
     const percentile = calculatePercentile(rank, total);
     const scoreColor = getPercentileColor(percentile);
 
-    const scoreText = `<span style="color: ${scoreColor};">${normalizedScore}</span>`;
-    const rankText = `#${formatNumber(rank)} / ${formatNumber(total)}`;
+    const scoreText = `<span style="color: #d1fa99;">${normalizedScore}</span>`;
+    const percentileText = `<span style="color: ${scoreColor};">${Math.floor(percentile)}%</span>`;
+    const rankText = `<span style="color: ${scoreColor};">#${formatNumber(rank)}</span> <span style="color: var(--text-secondary); font-size: 0.85em;">/ ${formatNumber(total)}</span>`;
 
-    return { scoreText, rankText };
+    return { scoreText, percentileText, rankText };
 }
 
 /**

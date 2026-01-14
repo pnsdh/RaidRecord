@@ -37,6 +37,225 @@ export function createPartyMembersHTML(partyMembers) {
 }
 
 /**
+ * Create raid info tooltip HTML
+ */
+export function createRaidInfoHTML(tier) {
+    if (!tier) {
+        return '<p style="color: var(--text-secondary);">레이드 정보 없음</p>';
+    }
+
+    const typeText = tier.type === 'SAVAGE' ? '영식' : '절';
+
+    let html = '<table style="width: 100%; border-collapse: collapse;">';
+    html += '<tbody>';
+    html += `<tr><td style="padding: 4px 8px 4px 0; color: var(--text-secondary); width: 80px;">이름</td><td style="padding: 4px 0; font-weight: 500;">${tier.fullName}</td></tr>`;
+    html += `<tr><td style="padding: 4px 8px 4px 0; color: var(--text-secondary);">종류</td><td style="padding: 4px 0; font-weight: 500;">${typeText}</td></tr>`;
+    html += `<tr><td style="padding: 4px 8px 4px 0; color: var(--text-secondary);">확장팩</td><td style="padding: 4px 0; font-weight: 500;">${tier.expansion}</td></tr>`;
+    html += `<tr><td style="padding: 4px 8px 4px 0; color: var(--text-secondary);">버전</td><td style="padding: 4px 0; font-weight: 500;">${tier.version}</td></tr>`;
+    html += `<tr><td style="padding: 4px 8px 4px 0; color: var(--text-secondary);">패치 날짜</td><td style="padding: 4px 0; font-weight: 500;">${tier.releaseDate}</td></tr>`;
+    html += '</tbody>';
+    html += '</table>';
+
+    return html;
+}
+
+/**
+ * Get encounter floor name
+ */
+function getFloorName(index, totalCount) {
+    if (totalCount === 5) {
+        // 5 encounters: 1층, 2층, 3층, 4층 전반, 4층 후반
+        const floorNames = ['1층', '2층', '3층', '4층 전반', '4층 후반'];
+        return floorNames[index] || `${index + 1}층`;
+    } else {
+        // 4 encounters or 1 encounter (Ultimate): 1층, 2층, 3층, 4층
+        return `${index + 1}층`;
+    }
+}
+
+/**
+ * Get percentile color (same as main table)
+ */
+function getPercentileColor(percentile) {
+    if (percentile >= 99) return '#e268a8';
+    if (percentile >= 95) return '#ff8000';
+    if (percentile >= 75) return '#a335ee';
+    if (percentile >= 50) return '#0070dd';
+    if (percentile >= 25) return '#1eff00';
+    return '#666666';
+}
+
+/**
+ * Create encounter all-star scores tooltip HTML (올스타 셀용)
+ */
+export function createEncounterScoresHTML(encounterAllStars) {
+    if (!encounterAllStars || encounterAllStars.length === 0) {
+        return '<p style="color: var(--text-secondary);">층별 정보 없음</p>';
+    }
+
+    let html = '<table style="width: 100%; border-collapse: collapse;">';
+    html += '<thead><tr>';
+    html += '<th style="padding: 4px 8px 4px 0; text-align: center; border-bottom: 1px solid var(--border-color);">층</th>';
+    html += '<th style="padding: 4px 8px; text-align: center; border-bottom: 1px solid var(--border-color);">점수</th>';
+    html += '<th style="padding: 4px 0 4px 8px; text-align: center; border-bottom: 1px solid var(--border-color);">직업</th>';
+    html += '</tr></thead>';
+    html += '<tbody>';
+
+    encounterAllStars.forEach((encounter, index) => {
+        const floorName = getFloorName(index, encounterAllStars.length);
+        const points = encounter.points ? encounter.points.toFixed(2) : '0.00';
+        const job = encounter.job || 'Unknown';
+        const jobColor = JOB_COLORS[job] || '#999';
+        const jobName = JOB_NAMES_KR[job] || job;
+
+        html += '<tr>';
+        html += `<td style="padding: 4px 8px 4px 0; text-align: center;">${floorName}</td>`;
+        html += `<td style="padding: 4px 8px; text-align: center; color: #d1fa99;">${points}</td>`;
+        html += `<td style="padding: 4px 0 4px 8px; text-align: center; color: ${jobColor}; font-weight: 500;">${jobName}</td>`;
+        html += '</tr>';
+    });
+
+    html += '</tbody>';
+    html += '</table>';
+
+    return html;
+}
+
+/**
+ * Create encounter percentiles tooltip HTML (백분위 셀용)
+ */
+export function createEncounterPercentilesHTML(encounterAllStars) {
+    if (!encounterAllStars || encounterAllStars.length === 0) {
+        return '<p style="color: var(--text-secondary);">층별 정보 없음</p>';
+    }
+
+    let html = '<table style="width: 100%; border-collapse: collapse;">';
+    html += '<thead><tr>';
+    html += '<th style="padding: 4px 8px 4px 0; text-align: center; border-bottom: 1px solid var(--border-color);">층</th>';
+    html += '<th style="padding: 4px 8px; text-align: center; border-bottom: 1px solid var(--border-color);">백분위</th>';
+    html += '<th style="padding: 4px 0 4px 8px; text-align: center; border-bottom: 1px solid var(--border-color);">직업</th>';
+    html += '</tr></thead>';
+    html += '<tbody>';
+
+    encounterAllStars.forEach((encounter, index) => {
+        const floorName = getFloorName(index, encounterAllStars.length);
+
+        // Calculate percentile
+        let percentile = 0;
+        if (encounter.rank && encounter.total) {
+            percentile = Math.floor(((encounter.total - encounter.rank + 1) / encounter.total) * 100);
+        }
+        const percentileColor = getPercentileColor(percentile);
+
+        const job = encounter.job || 'Unknown';
+        const jobColor = JOB_COLORS[job] || '#999';
+        const jobName = JOB_NAMES_KR[job] || job;
+
+        html += '<tr>';
+        html += `<td style="padding: 4px 8px 4px 0; text-align: center;">${floorName}</td>`;
+        html += `<td style="padding: 4px 8px; text-align: center; color: ${percentileColor};">${percentile}%</td>`;
+        html += `<td style="padding: 4px 0 4px 8px; text-align: center; color: ${jobColor}; font-weight: 500;">${jobName}</td>`;
+        html += '</tr>';
+    });
+
+    html += '</tbody>';
+    html += '</table>';
+
+    return html;
+}
+
+/**
+ * Create encounter ranks tooltip HTML (순위 셀용)
+ */
+export function createEncounterRanksHTML(encounterAllStars) {
+    if (!encounterAllStars || encounterAllStars.length === 0) {
+        return '<p style="color: var(--text-secondary);">층별 정보 없음</p>';
+    }
+
+    let html = '<table style="width: 100%; border-collapse: collapse;">';
+    html += '<thead><tr>';
+    html += '<th style="padding: 4px 8px 4px 0; text-align: center; border-bottom: 1px solid var(--border-color);">층</th>';
+    html += '<th style="padding: 4px 8px; text-align: center; border-bottom: 1px solid var(--border-color);">순위</th>';
+    html += '<th style="padding: 4px 0 4px 8px; text-align: center; border-bottom: 1px solid var(--border-color);">직업</th>';
+    html += '</tr></thead>';
+    html += '<tbody>';
+
+    encounterAllStars.forEach((encounter, index) => {
+        const floorName = getFloorName(index, encounterAllStars.length);
+
+        // Calculate percentile for color
+        let percentile = 0;
+        if (encounter.rank && encounter.total) {
+            percentile = Math.floor(((encounter.total - encounter.rank + 1) / encounter.total) * 100);
+        }
+        const percentileColor = getPercentileColor(percentile);
+
+        const rank = encounter.rank ? encounter.rank.toLocaleString('en-US') : '-';
+        const total = encounter.total ? encounter.total.toLocaleString('en-US') : '-';
+
+        const job = encounter.job || 'Unknown';
+        const jobColor = JOB_COLORS[job] || '#999';
+        const jobName = JOB_NAMES_KR[job] || job;
+
+        html += '<tr>';
+        html += `<td style="padding: 4px 8px 4px 0; text-align: center;">${floorName}</td>`;
+        html += `<td style="padding: 4px 8px; text-align: center;"><span style="color: ${percentileColor};">#${rank}</span> <span style="color: var(--text-secondary);">/ ${total}</span></td>`;
+        html += `<td style="padding: 4px 0 4px 8px; text-align: center; color: ${jobColor}; font-weight: 500;">${jobName}</td>`;
+        html += '</tr>';
+    });
+
+    html += '</tbody>';
+    html += '</table>';
+
+    return html;
+}
+
+/**
+ * Create date tooltip HTML
+ */
+export function createDateTooltipHTML(timestamp) {
+    if (!timestamp || timestamp === '') {
+        return '<p style="color: var(--text-secondary);">날짜 정보 없음</p>';
+    }
+
+    // Parse timestamp as number (milliseconds since epoch)
+    const timestampNum = Number(timestamp);
+    if (isNaN(timestampNum)) {
+        return '<p style="color: var(--text-secondary);">날짜 정보 오류</p>';
+    }
+
+    const date = new Date(timestampNum);
+
+    // Day of week names in Korean
+    const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+    const dayOfWeek = date.getDay();
+    const dayName = dayNames[dayOfWeek];
+
+    // Format: YYYY-MM-DD 요일\nHH:mm:ss.mmm
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+
+    const dateStr = `${year}-${month}-${day} ${dayName}`;
+    const timeStr = `${hours}:${minutes}:${seconds}.${milliseconds}`;
+
+    let html = `<p style="font-weight: 600; margin-bottom: 8px;">${dateStr}<br>${timeStr}</p>`;
+
+    // Check if it's between Tuesday 17:00-19:00 (warning period)
+    const hour = date.getHours();
+
+    if (dayOfWeek === 2 && hour >= 17 && hour < 19) {
+        html += `<p style="color: #ff8000; font-size: 0.9em; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-color);">⚠️ 화요일 17시~19시 사이 클리어<br>주차가 이전 주차일 가능성이 있습니다.</p>`;
+    }
+
+    return html;
+}
+
+/**
  * Create job frequency HTML for tooltip
  */
 export function createJobFrequencyHTML(jobFrequency) {
@@ -62,9 +281,46 @@ export function createJobFrequencyHTML(jobFrequency) {
 }
 
 /**
+ * Attach header tooltip listeners
+ */
+function attachHeaderTooltipListeners() {
+    const headers = document.querySelectorAll('.tooltip-header');
+
+    headers.forEach(header => {
+        const tooltip = header.querySelector('.header-tooltip');
+        if (!tooltip) return;
+
+        header.addEventListener('mouseenter', (e) => {
+            const headerRect = header.getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+
+            // Position below the header
+            let top = headerRect.bottom + 8;
+            let left = headerRect.left + (headerRect.width / 2) - (tooltipRect.width / 2);
+
+            // Check if tooltip goes off right edge
+            if (left + tooltipRect.width > window.innerWidth - 10) {
+                left = window.innerWidth - tooltipRect.width - 10;
+            }
+
+            // Check if tooltip goes off left edge
+            if (left < 10) {
+                left = 10;
+            }
+
+            tooltip.style.top = `${top}px`;
+            tooltip.style.left = `${left}px`;
+        });
+    });
+}
+
+/**
  * Attach event listeners for tooltips
  */
 export function attachTooltipListeners() {
+    // Attach header tooltip listeners
+    attachHeaderTooltipListeners();
+
     const rows = document.querySelectorAll('.results-table tbody tr.raid-row');
 
     // Create a single tooltip element that we'll reuse
@@ -87,11 +343,41 @@ export function attachTooltipListeners() {
             }
         });
 
-        // Get only the first 3 cells (레이드, 주, 날짜) for party member tooltip
-        const partyTooltipCells = row.querySelectorAll('td:nth-child(1), td:nth-child(2), td:nth-child(3)');
+        // Get the 1st cell (레이드) for raid info tooltip
+        const raidCell = row.querySelector('td:nth-child(1)');
+        if (raidCell) {
+            raidCell.addEventListener('mouseenter', (e) => {
+                const tierData = row.getAttribute('data-tier');
+                if (!tierData) return;
 
-        partyTooltipCells.forEach(cell => {
-            cell.addEventListener('mouseenter', (e) => {
+                try {
+                    const tier = JSON.parse(tierData);
+                    const raidHTML = createRaidInfoHTML(tier);
+                    tooltip.innerHTML = raidHTML;
+                    tooltip.style.display = 'block';
+
+                    // Position tooltip at mouse position
+                    updateTooltipPosition(e, tooltip);
+                } catch (error) {
+                    // Silent fail
+                }
+            });
+
+            raidCell.addEventListener('mousemove', (e) => {
+                if (tooltip.style.display === 'block') {
+                    updateTooltipPosition(e, tooltip);
+                }
+            });
+
+            raidCell.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        }
+
+        // Get the 2nd cell (주차) for party member tooltip
+        const weekCell = row.querySelector('td:nth-child(2)');
+        if (weekCell) {
+            weekCell.addEventListener('mouseenter', (e) => {
                 const partyData = row.getAttribute('data-party');
                 if (!partyData) return;
 
@@ -108,16 +394,42 @@ export function attachTooltipListeners() {
                 }
             });
 
-            cell.addEventListener('mousemove', (e) => {
+            weekCell.addEventListener('mousemove', (e) => {
                 if (tooltip.style.display === 'block') {
                     updateTooltipPosition(e, tooltip);
                 }
             });
 
-            cell.addEventListener('mouseleave', () => {
+            weekCell.addEventListener('mouseleave', () => {
                 tooltip.style.display = 'none';
             });
-        });
+        }
+
+        // Get the 3rd cell (날짜) for date tooltip
+        const dateCell = row.querySelector('td:nth-child(3)');
+        if (dateCell) {
+            dateCell.addEventListener('mouseenter', (e) => {
+                const timestamp = row.getAttribute('data-timestamp');
+                if (!timestamp) return;
+
+                const dateHTML = createDateTooltipHTML(timestamp);
+                tooltip.innerHTML = dateHTML;
+                tooltip.style.display = 'block';
+
+                // Position tooltip at mouse position
+                updateTooltipPosition(e, tooltip);
+            });
+
+            dateCell.addEventListener('mousemove', (e) => {
+                if (tooltip.style.display === 'block') {
+                    updateTooltipPosition(e, tooltip);
+                }
+            });
+
+            dateCell.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        }
 
         // Get the 4th cell (직업) for job frequency tooltip
         const jobCell = row.querySelector('td:nth-child(4)');
@@ -146,6 +458,117 @@ export function attachTooltipListeners() {
             });
 
             jobCell.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        }
+
+        // Get the 5th cell (올스타) for encounter scores tooltip
+        const scoreCell = row.querySelector('td:nth-child(5)');
+        if (scoreCell) {
+            scoreCell.addEventListener('mouseenter', (e) => {
+                const encountersData = row.getAttribute('data-encounters');
+                const tierData = row.getAttribute('data-tier');
+                if (!encountersData || !tierData) return;
+
+                try {
+                    const encounters = JSON.parse(encountersData);
+                    const tier = JSON.parse(tierData);
+
+                    // Only show tooltip for SAVAGE raids (multiple encounters)
+                    if (tier.type === 'SAVAGE' && encounters.length > 0) {
+                        const encounterHTML = createEncounterScoresHTML(encounters);
+                        tooltip.innerHTML = encounterHTML;
+                        tooltip.style.display = 'block';
+
+                        // Position tooltip at mouse position
+                        updateTooltipPosition(e, tooltip);
+                    }
+                } catch (error) {
+                    // Silent fail
+                }
+            });
+
+            scoreCell.addEventListener('mousemove', (e) => {
+                if (tooltip.style.display === 'block') {
+                    updateTooltipPosition(e, tooltip);
+                }
+            });
+
+            scoreCell.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        }
+
+        // Get the 6th cell (백분위) for encounter percentiles tooltip
+        const percentileCell = row.querySelector('td:nth-child(6)');
+        if (percentileCell) {
+            percentileCell.addEventListener('mouseenter', (e) => {
+                const encountersData = row.getAttribute('data-encounters');
+                const tierData = row.getAttribute('data-tier');
+                if (!encountersData || !tierData) return;
+
+                try {
+                    const encounters = JSON.parse(encountersData);
+                    const tier = JSON.parse(tierData);
+
+                    // Only show tooltip for SAVAGE raids (multiple encounters)
+                    if (tier.type === 'SAVAGE' && encounters.length > 0) {
+                        const encounterHTML = createEncounterPercentilesHTML(encounters);
+                        tooltip.innerHTML = encounterHTML;
+                        tooltip.style.display = 'block';
+
+                        // Position tooltip at mouse position
+                        updateTooltipPosition(e, tooltip);
+                    }
+                } catch (error) {
+                    // Silent fail
+                }
+            });
+
+            percentileCell.addEventListener('mousemove', (e) => {
+                if (tooltip.style.display === 'block') {
+                    updateTooltipPosition(e, tooltip);
+                }
+            });
+
+            percentileCell.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        }
+
+        // Get the 7th cell (순위) for encounter ranks tooltip
+        const rankCell = row.querySelector('td:nth-child(7)');
+        if (rankCell) {
+            rankCell.addEventListener('mouseenter', (e) => {
+                const encountersData = row.getAttribute('data-encounters');
+                const tierData = row.getAttribute('data-tier');
+                if (!encountersData || !tierData) return;
+
+                try {
+                    const encounters = JSON.parse(encountersData);
+                    const tier = JSON.parse(tierData);
+
+                    // Only show tooltip for SAVAGE raids (multiple encounters)
+                    if (tier.type === 'SAVAGE' && encounters.length > 0) {
+                        const encounterHTML = createEncounterRanksHTML(encounters);
+                        tooltip.innerHTML = encounterHTML;
+                        tooltip.style.display = 'block';
+
+                        // Position tooltip at mouse position
+                        updateTooltipPosition(e, tooltip);
+                    }
+                } catch (error) {
+                    // Silent fail
+                }
+            });
+
+            rankCell.addEventListener('mousemove', (e) => {
+                if (tooltip.style.display === 'block') {
+                    updateTooltipPosition(e, tooltip);
+                }
+            });
+
+            rankCell.addEventListener('mouseleave', () => {
                 tooltip.style.display = 'none';
             });
         }
