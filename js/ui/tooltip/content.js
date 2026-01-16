@@ -131,12 +131,12 @@ function isValidAndDifferentFightStart(fightStartTime, clearTimestamp) {
  */
 export function createDateTooltipHTML(timestamp, rowData) {
     if (!timestamp || timestamp === '') {
-        return '<p style="color: var(--text-secondary);">날짜 정보 없음</p>';
+        return null;
     }
 
     const timestampNum = Number(timestamp);
     if (isNaN(timestampNum)) {
-        return '<p style="color: var(--text-secondary);">날짜 정보 오류</p>';
+        return null;
     }
 
     const clearDate = new Date(timestampNum);
@@ -164,7 +164,7 @@ export function createDateTooltipHTML(timestamp, rowData) {
  */
 export function createJobFrequencyHTML(jobFrequency) {
     if (!jobFrequency || jobFrequency.length === 0) {
-        return '<p style="color: var(--text-secondary);">직업 정보 없음</p>';
+        return null;
     }
 
     let html = '<p style="font-weight: 600; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">클리어 직업</p>';
@@ -264,10 +264,17 @@ function createEmptyDataRow(floorName) {
  */
 export function createEncounterScoresHTML(encounterAllStars, tier) {
     if (!tier) {
-        return '<p style="color: var(--text-secondary);">층별 정보 없음</p>';
+        return null;
     }
 
     const completeFloorData = buildCompleteFloorData(encounterAllStars || [], tier);
+
+    // Check if all floors have no data
+    const hasAnyData = completeFloorData.some(floor => floor.data !== null);
+    if (!hasAnyData) {
+        return null;
+    }
+
     let html = createEncounterTableHeader('점수');
 
     completeFloorData.forEach(floor => {
@@ -296,10 +303,17 @@ export function createEncounterScoresHTML(encounterAllStars, tier) {
  */
 export function createEncounterPercentilesHTML(encounterAllStars, tier) {
     if (!tier) {
-        return '<p style="color: var(--text-secondary);">층별 정보 없음</p>';
+        return null;
     }
 
     const completeFloorData = buildCompleteFloorData(encounterAllStars || [], tier);
+
+    // Check if all floors have no data
+    const hasAnyData = completeFloorData.some(floor => floor.data !== null);
+    if (!hasAnyData) {
+        return null;
+    }
+
     let html = createEncounterTableHeader('백분위');
 
     completeFloorData.forEach(floor => {
@@ -332,10 +346,17 @@ export function createEncounterPercentilesHTML(encounterAllStars, tier) {
  */
 export function createEncounterRanksHTML(encounterAllStars, tier) {
     if (!tier) {
-        return '<p style="color: var(--text-secondary);">층별 정보 없음</p>';
+        return null;
     }
 
     const completeFloorData = buildCompleteFloorData(encounterAllStars || [], tier);
+
+    // Check if all floors have no data
+    const hasAnyData = completeFloorData.some(floor => floor.data !== null);
+    if (!hasAnyData) {
+        return null;
+    }
+
     let html = createEncounterTableHeader('순위');
 
     completeFloorData.forEach(floor => {

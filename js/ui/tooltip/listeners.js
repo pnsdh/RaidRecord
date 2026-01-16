@@ -40,8 +40,17 @@ const CELL_TOOLTIP_CONFIG = [
         index: CELL_INDICES.WEEK,
         dataAttribute: 'data-party',
         createHTML: (partyData, rowData) => {
-            const partyHTML = createPartyMembersHTML(JSON.parse(partyData));
+            const partyMembers = JSON.parse(partyData);
+            const hasPartyData = partyMembers && partyMembers.length > 0;
+            const hasWeekWarning = rowData.isWeekAmbiguous && rowData.week > 0;
+
+            // Don't show tooltip if both party data and week warning are missing
+            if (!hasPartyData && !hasWeekWarning) {
+                return null;
+            }
+
             const weekHTML = createWeekTooltipHTML(rowData.isWeekAmbiguous, rowData.week);
+            const partyHTML = hasPartyData ? createPartyMembersHTML(partyMembers) : '';
             return weekHTML + partyHTML;
         },
         requiresSecondary: true,
@@ -180,6 +189,9 @@ function attachCellTooltipListeners(row, tooltip) {
                 } else {
                     html = config.createHTML(data);
                 }
+
+                // Don't show tooltip if HTML is null or empty
+                if (!html) return;
 
                 tooltip.innerHTML = html;
                 tooltip.style.display = 'block';
