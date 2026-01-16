@@ -109,6 +109,9 @@ export class App {
         // Save selected server for next search
         localStorage.setItem(STORAGE_KEYS.SERVER, serverName);
 
+        // Save character name for next search
+        this.saveLastSearch(characterName);
+
         // Update search fields (input and server dropdown)
         this.elements.searchInput.value = characterName;
         this.elements.serverSelect.value = serverName;
@@ -263,9 +266,6 @@ export class App {
 
             // Render results
             this.ui.renderResults(character, sortedHistory);
-
-            // Save last search
-            this.saveLastSearch(characterName);
 
             // Update API usage after all queries
             this.updateApiUsage();
