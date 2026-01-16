@@ -45,5 +45,7 @@ export const TIMING = {
 export const UI_CONFIG = {
     TOOLTIP_OFFSET: 10,                       // Tooltip offset from cursor
     TOOLTIP_MIN_MARGIN: 10,                   // Minimum margin from viewport edge
+    HEADER_TOOLTIP_MARGIN: 10,                // Margin for header tooltips from viewport edge
+    HEADER_TOOLTIP_VERTICAL_OFFSET: 8,       // Vertical offset below header for header tooltips
     CANCEL_BUTTON_COLOR: '#e94560'            // Red color for cancel button
 };

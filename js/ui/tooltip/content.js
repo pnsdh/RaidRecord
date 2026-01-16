@@ -14,7 +14,10 @@ export const TABLE_STYLES = {
     headerCellLast: 'padding: 4px 0 4px 8px; text-align: center; border-bottom: 1px solid var(--border-color);',
     dataCell: 'padding: 4px 8px 4px 0; text-align: center;',
     dataCellMiddle: 'padding: 4px 8px; text-align: center;',
-    dataCellLast: 'padding: 4px 0 4px 8px; text-align: center;'
+    dataCellLast: 'padding: 4px 0 4px 8px; text-align: center;',
+    // Info table styles (for raid info, date tooltips, etc.)
+    infoTableLabelCell: 'padding: 4px 8px 4px 0; color: var(--text-secondary); width: 80px;',
+    infoTableValueCell: 'padding: 4px 0; font-weight: 500;'
 };
 
 /**
@@ -73,9 +76,9 @@ export function createRaidInfoHTML(tier) {
         { label: '패치 날짜', value: tier.releaseDate }
     ];
 
-    let html = '<table style="width: 100%; border-collapse: collapse;"><tbody>';
+    let html = `<table style="${TABLE_STYLES.table}"><tbody>`;
     for (const row of rows) {
-        html += `<tr><td style="padding: 4px 8px 4px 0; color: var(--text-secondary); width: 80px;">${row.label}</td><td style="padding: 4px 0; font-weight: 500;">${row.value}</td></tr>`;
+        html += `<tr><td style="${TABLE_STYLES.infoTableLabelCell}">${row.label}</td><td style="${TABLE_STYLES.infoTableValueCell}">${row.value}</td></tr>`;
     }
     html += '</tbody></table>';
 
@@ -112,6 +115,18 @@ export function createWeekTooltipHTML(isWeekAmbiguous, week) {
 }
 
 /**
+ * Check if fight start time is valid and different from clear time
+ */
+function isValidAndDifferentFightStart(fightStartTime, clearTimestamp) {
+    if (!fightStartTime || fightStartTime === '') return false;
+
+    const fightStartNum = Number(fightStartTime);
+    if (isNaN(fightStartNum) || fightStartNum <= 0) return false;
+
+    return fightStartNum !== clearTimestamp;
+}
+
+/**
  * Create date tooltip HTML
  */
 export function createDateTooltipHTML(timestamp, rowData) {
@@ -127,20 +142,17 @@ export function createDateTooltipHTML(timestamp, rowData) {
     const clearDate = new Date(timestampNum);
     const fightStartTime = rowData?.fightStartTime;
 
-    let html = '<table style="width: 100%; border-collapse: collapse;"><tbody>';
+    let html = `<table style="${TABLE_STYLES.table}"><tbody>`;
 
-    // Show fight start time if available
-    const fightStartNum = Number(fightStartTime);
+    // Show both fight start and clear times if fight start time is available and different
+    if (isValidAndDifferentFightStart(fightStartTime, timestampNum)) {
+        const startDate = new Date(Number(fightStartTime));
 
-    // Check if we have a valid and different fight start time
-    if (fightStartTime && fightStartTime !== '' && !isNaN(fightStartNum) && fightStartNum > 0 && fightStartNum !== timestampNum) {
-        const startDate = new Date(fightStartNum);
-
-        html += `<tr><td style="padding: 4px 8px 4px 0; color: var(--text-secondary); width: 80px;">전투 시작</td><td style="padding: 4px 0; font-weight: 500;">${formatDateTimeString(startDate)}</td></tr>`;
-        html += `<tr><td style="padding: 4px 8px 4px 0; color: var(--text-secondary);">클리어</td><td style="padding: 4px 0; font-weight: 500;">${formatDateTimeString(clearDate)}</td></tr>`;
+        html += `<tr><td style="${TABLE_STYLES.infoTableLabelCell}">전투 시작</td><td style="${TABLE_STYLES.infoTableValueCell}">${formatDateTimeString(startDate)}</td></tr>`;
+        html += `<tr><td style="${TABLE_STYLES.infoTableLabelCell}">클리어</td><td style="${TABLE_STYLES.infoTableValueCell}">${formatDateTimeString(clearDate)}</td></tr>`;
     } else {
         // Only show clear time if start time not available or same as clear time
-        html += `<tr><td style="padding: 4px 8px 4px 0; color: var(--text-secondary); width: 80px;">클리어</td><td style="padding: 4px 0; font-weight: 500;">${formatDateTimeString(clearDate)}</td></tr>`;
+        html += `<tr><td style="${TABLE_STYLES.infoTableLabelCell}">클리어</td><td style="${TABLE_STYLES.infoTableValueCell}">${formatDateTimeString(clearDate)}</td></tr>`;
     }
 
     html += '</tbody></table>';

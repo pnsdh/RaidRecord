@@ -56,9 +56,7 @@ const CELL_TOOLTIP_CONFIG = [
         createHTML: (clearTime, rowData) => createDateTooltipHTML(clearTime, rowData),
         requiresSecondary: true,
         getSecondaryData: (row) => ({
-            fightStartTime: row.getAttribute('data-fight-start'),
-            isWeekAmbiguous: row.getAttribute('data-week-ambiguous') === 'true',
-            week: parseInt(row.getAttribute('data-week') || '0')
+            fightStartTime: row.getAttribute('data-fight-start')
         })
     },
     {
@@ -135,19 +133,21 @@ function attachHeaderTooltipListeners() {
         header.addEventListener('mouseenter', (e) => {
             const headerRect = header.getBoundingClientRect();
             const tooltipRect = tooltip.getBoundingClientRect();
+            const margin = UI_CONFIG.HEADER_TOOLTIP_MARGIN;
+            const verticalOffset = UI_CONFIG.HEADER_TOOLTIP_VERTICAL_OFFSET;
 
             // Position below the header
-            let top = headerRect.bottom + 8;
+            let top = headerRect.bottom + verticalOffset;
             let left = headerRect.left + (headerRect.width / 2) - (tooltipRect.width / 2);
 
             // Check if tooltip goes off right edge
-            if (left + tooltipRect.width > window.innerWidth - 10) {
-                left = window.innerWidth - tooltipRect.width - 10;
+            if (left + tooltipRect.width > window.innerWidth - margin) {
+                left = window.innerWidth - tooltipRect.width - margin;
             }
 
             // Check if tooltip goes off left edge
-            if (left < 10) {
-                left = 10;
+            if (left < margin) {
+                left = margin;
             }
 
             tooltip.style.top = `${top}px`;
