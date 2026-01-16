@@ -229,6 +229,57 @@ header {
     line-height: 1.6;
 }
 
+/* Server Select Section */
+.server-select-section {
+    display: none;
+    text-align: center;
+    padding: 3rem;
+    background-color: var(--bg-secondary);
+    border-radius: 10px;
+    margin-top: 2rem;
+}
+
+.server-select-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.server-select-message {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.server-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.server-choice-btn {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.server-choice-btn:hover {
+    border-color: var(--accent-primary);
+    background-color: var(--bg-primary);
+    transform: translateY(-2px);
+}
+
+.server-choice-btn:active {
+    transform: translateY(0);
+}
+
 /* Results Section */
 .results-section {
     display: none;

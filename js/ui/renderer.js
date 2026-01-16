@@ -19,6 +19,9 @@ export class UIController {
         this.progressText = document.getElementById('progressText');
         this.errorSection = document.getElementById('errorSection');
         this.errorMessage = document.getElementById('errorMessage');
+        this.serverSelectSection = document.getElementById('serverSelectSection');
+        this.serverSelectMessage = document.getElementById('serverSelectMessage');
+        this.serverButtons = document.getElementById('serverButtons');
         this.apiUsageSection = document.getElementById('apiUsageSection');
         this.apiUsageValue = document.getElementById('apiUsageValue');
         this.apiUsageReset = document.getElementById('apiUsageReset');
@@ -290,5 +293,57 @@ export class UIController {
 
         // Show section
         this.apiUsageSection.style.display = 'block';
+    }
+
+    /**
+     * Show server selection UI
+     * @param {string} characterName - Character name to search
+     * @param {string[]} servers - Array of server names (English) to show as options
+     * @param {Function} onServerSelect - Callback function when server is selected
+     * @param {string} message - Optional custom message to display
+     */
+    showServerSelection(characterName, servers, onServerSelect, message = null) {
+        // Hide other sections
+        this.loadingSection.style.display = 'none';
+        this.errorSection.style.display = 'none';
+        this.resultsSection.style.display = 'none';
+
+        // Set message
+        if (message) {
+            this.serverSelectMessage.innerHTML = message;
+        } else {
+            this.serverSelectMessage.innerHTML = `
+                <strong>${characterName}</strong> 캐릭터를 검색할 서버를 선택해주세요.
+            `;
+        }
+
+        // Clear previous buttons
+        this.serverButtons.innerHTML = '';
+
+        // Create server buttons
+        servers.forEach(serverEN => {
+            const serverKR = getServerNameKR(serverEN);
+            const button = document.createElement('button');
+            button.className = 'server-choice-btn';
+            button.textContent = serverKR;
+            button.setAttribute('data-server', serverEN);
+            button.addEventListener('click', () => {
+                onServerSelect(serverEN);
+            });
+            this.serverButtons.appendChild(button);
+        });
+
+        // Show section
+        this.serverSelectSection.style.display = 'block';
+
+        // Enable controls
+        this.enableControls();
+    }
+
+    /**
+     * Hide server selection UI
+     */
+    hideServerSelection() {
+        this.serverSelectSection.style.display = 'none';
     }
 }
