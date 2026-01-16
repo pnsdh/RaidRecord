@@ -2,12 +2,12 @@
  * Utility functions for raid tier processing
  */
 
-import { getWeekNumber, formatDate } from '../constants.js';
+import { getWeekNumber, formatDate, isAmbiguousWeek } from '../constants.js';
 
 /**
  * Process tier data with pre-fetched party members
  */
-export function processTierData(api, combinedData, tier, partyMembers = []) {
+export function processTierData(api, combinedData, tier, partyMembers = [], fightStartTime = null, fightEndTime = null) {
     const earliestClear = combinedData.earliestClear;
     const allStarData = combinedData.allStarData;
     const jobFrequency = combinedData.jobFrequency || [];
@@ -16,7 +16,8 @@ export function processTierData(api, combinedData, tier, partyMembers = []) {
     // Extract report information from the parse record
     const reportCode = earliestClear.report?.code || null;
     const fightId = earliestClear.report?.fightID || null;
-    const clearTimestamp = earliestClear.startTime || null;
+    // earliestClear.startTime is actually the fight START time from FFLogs API
+    const clearTimestamp = fightEndTime || earliestClear.startTime || null;
     const jobSpec = earliestClear.spec || null;
 
     // Convert job frequency specs to job names
@@ -40,6 +41,7 @@ export function processTierData(api, combinedData, tier, partyMembers = []) {
             encounterName: '',
             job: jobSpec ? api.getJobFromSpecId(jobSpec) : 'Unknown',
             clearTimestamp: null,
+            fightStartTime: null,
             clearWeek: null,
             clearDate: 'Unknown',
             allStarPoints: allStarData.points,
@@ -53,11 +55,18 @@ export function processTierData(api, combinedData, tier, partyMembers = []) {
         };
     }
 
+    // Use fight start time for week calculation if available, otherwise use clear time
+    // fightStartTime should be the actual start, clearTimestamp is the end time
+    const weekCalculationTime = fightStartTime || clearTimestamp;
+    const isWeekAmbiguous = isAmbiguousWeek(fightStartTime);
+
     return {
         encounterName: '',
         job: api.getJobFromSpecId(jobSpec),
         clearTimestamp: clearTimestamp,
-        clearWeek: getWeekNumber(tier.releaseDate, clearTimestamp),
+        fightStartTime: fightStartTime,
+        clearWeek: getWeekNumber(tier.releaseDate, weekCalculationTime),
+        isWeekAmbiguous: isWeekAmbiguous,
         clearDate: formatDate(clearTimestamp),
         allStarPoints: allStarData.points,
         allStarRank: allStarData.rank,

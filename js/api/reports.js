@@ -40,8 +40,11 @@ export class ReportsAPI {
             queryFields += `
                 ${alias}: report(code: $reportCode${index}) {
                     code
+                    startTime
                     fights {
                         id
+                        startTime
+                        endTime
                         friendlyPlayers
                     }
                     masterData {
@@ -73,8 +76,8 @@ export class ReportsAPI {
 
         const data = await this.query(queryString, variables, true);
 
-        // Initialize results array with empty arrays for all reports
-        const results = reportFights.map(() => []);
+        // Initialize results array with empty data for all reports
+        const results = reportFights.map(() => ({ partyMembers: [], fightStartTime: null, fightEndTime: null }));
 
         // Process results for each valid report
         validReports.forEach((rf, index) => {
@@ -122,7 +125,18 @@ export class ReportsAPI {
                 job: this.getJobFromSpecId(player.subType)
             }));
 
-            results[originalIndex] = partyMembers;
+            // Calculate absolute fight times (report start + fight offset)
+            const reportStartTime = report.startTime || 0;
+            const fightStartOffset = fight.startTime || 0;
+            const fightEndOffset = fight.endTime || 0;
+            const fightStartTime = reportStartTime + fightStartOffset;
+            const fightEndTime = reportStartTime + fightEndOffset;
+
+            results[originalIndex] = {
+                partyMembers,
+                fightStartTime,
+                fightEndTime
+            };
         });
 
         return results;

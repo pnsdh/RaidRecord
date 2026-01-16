@@ -83,9 +83,38 @@ export function createRaidInfoHTML(tier) {
 }
 
 /**
+ * Format date and time string from date (single line)
+ */
+function formatDateTimeString(date) {
+    const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+    const dayName = dayNames[date.getDay()];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+    return `${year}-${month}-${day} ${dayName} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+}
+
+/**
+ * Create week tooltip HTML
+ */
+export function createWeekTooltipHTML(isWeekAmbiguous, week) {
+    if (!isWeekAmbiguous || week <= 0) {
+        return '';
+    }
+
+    const nextWeek = week + 1;
+
+    return `<p style="color: #ff8000; font-size: 0.9em; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); max-width: 320px;">⚠️ ${week}주차인지, ${nextWeek}주차인지 정확하게 알 수 없는 로그입니다. 화요일 19시까지 클리어 한 경우 화요일 17시 전에 인스턴스에 입장하여, 해당 인스턴스에서 클리어 했다고 가정합니다.</p>`;
+}
+
+/**
  * Create date tooltip HTML
  */
-export function createDateTooltipHTML(timestamp) {
+export function createDateTooltipHTML(timestamp, rowData) {
     if (!timestamp || timestamp === '') {
         return '<p style="color: var(--text-secondary);">날짜 정보 없음</p>';
     }
@@ -95,29 +124,26 @@ export function createDateTooltipHTML(timestamp) {
         return '<p style="color: var(--text-secondary);">날짜 정보 오류</p>';
     }
 
-    const date = new Date(timestampNum);
-    const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
-    const dayOfWeek = date.getDay();
-    const dayName = dayNames[dayOfWeek];
+    const clearDate = new Date(timestampNum);
+    const fightStartTime = rowData?.fightStartTime;
 
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+    let html = '<table style="width: 100%; border-collapse: collapse;"><tbody>';
 
-    const dateStr = `${year}-${month}-${day} ${dayName}`;
-    const timeStr = `${hours}:${minutes}:${seconds}.${milliseconds}`;
+    // Show fight start time if available
+    const fightStartNum = Number(fightStartTime);
 
-    let html = `<p style="font-weight: 600; margin-bottom: 8px;">${dateStr}<br>${timeStr}</p>`;
+    // Check if we have a valid and different fight start time
+    if (fightStartTime && fightStartTime !== '' && !isNaN(fightStartNum) && fightStartNum > 0 && fightStartNum !== timestampNum) {
+        const startDate = new Date(fightStartNum);
 
-    // Check if it's between Tuesday 17:00-19:00 (warning period)
-    if (dayOfWeek === 2 && hours >= 17 && hours < 19) {
-        html += `<p style="color: #ff8000; font-size: 0.9em; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-color);">⚠️ 화요일 17시~19시 사이 클리어<br>주차가 이전 주차일 가능성이 있습니다.</p>`;
+        html += `<tr><td style="padding: 4px 8px 4px 0; color: var(--text-secondary); width: 80px;">전투 시작</td><td style="padding: 4px 0; font-weight: 500;">${formatDateTimeString(startDate)}</td></tr>`;
+        html += `<tr><td style="padding: 4px 8px 4px 0; color: var(--text-secondary);">클리어</td><td style="padding: 4px 0; font-weight: 500;">${formatDateTimeString(clearDate)}</td></tr>`;
+    } else {
+        // Only show clear time if start time not available or same as clear time
+        html += `<tr><td style="padding: 4px 8px 4px 0; color: var(--text-secondary); width: 80px;">클리어</td><td style="padding: 4px 0; font-weight: 500;">${formatDateTimeString(clearDate)}</td></tr>`;
     }
 
+    html += '</tbody></table>';
     return html;
 }
 

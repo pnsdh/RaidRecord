@@ -140,11 +140,14 @@ export class RaidHistorySearch {
 
                 const tier = tiers[i];
                 const combinedData = batchResults[i];
-                const partyMembers = batchPartyMembers[i] || [];
+                const partyData = batchPartyMembers[i];
+                const partyMembers = partyData?.partyMembers || [];
+                const fightStartTime = partyData?.fightStartTime || null;
+                const fightEndTime = partyData?.fightEndTime || null;
 
                 if (combinedData && combinedData.earliestClear) {
                     try {
-                        const clearData = processTierData(this.api, combinedData, tier, partyMembers);
+                        const clearData = processTierData(this.api, combinedData, tier, partyMembers, fightStartTime, fightEndTime);
 
                         if (clearData) {
                             results.push({

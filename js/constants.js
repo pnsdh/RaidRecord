@@ -16,4 +16,4 @@ export { RAID_TIERS, getAllRaidTiers, getSelectedRaidTiers } from './config/raid
 export { JOB_COLORS, JOB_NAMES_KR, JOB_ABBR_KR, getJobOrder, getJobFromSpecId } from './config/jobs.js';
 
 // Re-export from config/time.js
-export { WEEK_CONFIG, getWeekNumber, formatDate } from './config/time.js';
+export { WEEK_CONFIG, getWeekNumber, formatDate, isAmbiguousWeek } from './config/time.js';

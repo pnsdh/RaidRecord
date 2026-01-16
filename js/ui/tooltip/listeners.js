@@ -11,7 +11,8 @@ import {
     createJobFrequencyHTML,
     createEncounterScoresHTML,
     createEncounterPercentilesHTML,
-    createEncounterRanksHTML
+    createEncounterRanksHTML,
+    createWeekTooltipHTML
 } from './content.js';
 
 // Constants for table cell indices
@@ -38,14 +39,27 @@ const CELL_TOOLTIP_CONFIG = [
     {
         index: CELL_INDICES.WEEK,
         dataAttribute: 'data-party',
-        createHTML: (data) => createPartyMembersHTML(JSON.parse(data)),
-        requiresTier: false
+        createHTML: (partyData, rowData) => {
+            const partyHTML = createPartyMembersHTML(JSON.parse(partyData));
+            const weekHTML = createWeekTooltipHTML(rowData.isWeekAmbiguous, rowData.week);
+            return weekHTML + partyHTML;
+        },
+        requiresSecondary: true,
+        getSecondaryData: (row) => ({
+            isWeekAmbiguous: row.getAttribute('data-week-ambiguous') === 'true',
+            week: parseInt(row.getAttribute('data-week') || '0')
+        })
     },
     {
         index: CELL_INDICES.DATE,
         dataAttribute: 'data-timestamp',
-        createHTML: (data) => createDateTooltipHTML(data),
-        requiresTier: false
+        createHTML: (clearTime, rowData) => createDateTooltipHTML(clearTime, rowData),
+        requiresSecondary: true,
+        getSecondaryData: (row) => ({
+            fightStartTime: row.getAttribute('data-fight-start'),
+            isWeekAmbiguous: row.getAttribute('data-week-ambiguous') === 'true',
+            week: parseInt(row.getAttribute('data-week') || '0')
+        })
     },
     {
         index: CELL_INDICES.JOB,
@@ -152,7 +166,7 @@ function attachCellTooltipListeners(row, tooltip) {
 
         cell.addEventListener('mouseenter', (e) => {
             const data = row.getAttribute(config.dataAttribute);
-            if (!data && !config.requiresTier) return;
+            if (!data && !config.requiresTier && !config.requiresSecondary) return;
 
             try {
                 let html;
@@ -160,6 +174,9 @@ function attachCellTooltipListeners(row, tooltip) {
                     const tierData = row.getAttribute('data-tier');
                     if (!tierData) return;
                     html = config.createHTML(data, tierData);
+                } else if (config.requiresSecondary) {
+                    const secondaryData = config.getSecondaryData ? config.getSecondaryData(row) : row.getAttribute(config.secondaryAttribute);
+                    html = config.createHTML(data, secondaryData);
                 } else {
                     html = config.createHTML(data);
                 }

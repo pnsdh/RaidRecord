@@ -233,7 +233,7 @@ export class UIController {
         }
 
         // Week badge
-        const weekBadge = formatWeekBadge(clearData.clearWeek);
+        const weekBadge = formatWeekBadge(clearData.clearWeek, clearData.isWeekAmbiguous);
 
         // Date text
         const dateText = (clearData.clearDate && clearData.clearDate !== 'Unknown') ? clearData.clearDate : '-';
@@ -247,7 +247,7 @@ export class UIController {
         );
 
         return `
-            <tr class="raid-row" data-report="${clearData.reportCode || ''}" data-fight="${clearData.fightId || ''}" data-timestamp="${clearData.clearTimestamp || ''}" data-tier='${JSON.stringify(tier).replace(/'/g, "&apos;")}' data-encounters='${JSON.stringify(clearData.encounterAllStars || []).replace(/'/g, "&apos;")}' data-party='${JSON.stringify(clearData.partyMembers || []).replace(/'/g, "&apos;")}' data-jobs='${JSON.stringify(clearData.jobFrequency || []).replace(/'/g, "&apos;")}'>
+            <tr class="raid-row" data-report="${clearData.reportCode || ''}" data-fight="${clearData.fightId || ''}" data-timestamp="${clearData.clearTimestamp || ''}" data-fight-start="${clearData.fightStartTime || ''}" data-week-ambiguous="${clearData.isWeekAmbiguous || false}" data-week="${clearData.clearWeek || 0}" data-tier='${JSON.stringify(tier).replace(/'/g, "&apos;")}' data-encounters='${JSON.stringify(clearData.encounterAllStars || []).replace(/'/g, "&apos;")}' data-party='${JSON.stringify(clearData.partyMembers || []).replace(/'/g, "&apos;")}' data-jobs='${JSON.stringify(clearData.jobFrequency || []).replace(/'/g, "&apos;")}'>
                 <td>${raidNameBadge}</td>
                 <td>${weekBadge}</td>
                 <td class="date-col">${dateText}</td>

@@ -69,12 +69,13 @@ export function formatJobBadge(job) {
 /**
  * Format week badge
  */
-export function formatWeekBadge(week) {
+export function formatWeekBadge(week, isAmbiguous = false) {
     if (!week) {
         return '<span class="week-badge unknown">-</span>';
     }
     const weekClass = getWeekClass(week);
-    return `<span class="week-badge ${weekClass}">${week}주클</span>`;
+    const question = isAmbiguous ? '<span style="font-size: 0.85em; color: #331111;">+?</span>' : '';
+    return `<span class="week-badge ${weekClass}">${week}주클${question}</span>`;
 }
 
 /**

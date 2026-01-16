@@ -36,6 +36,21 @@ export function getWeekNumber(releaseDate, clearTimestamp) {
 }
 
 /**
+ * Check if fight start time is in ambiguous window (Tue 17:00-19:00)
+ * Returns true if we can't definitively determine which week the clear belongs to
+ */
+export function isAmbiguousWeek(fightStartTimestamp) {
+    if (!fightStartTimestamp) return false;
+
+    const startDate = new Date(fightStartTimestamp);
+    const dayOfWeek = startDate.getDay();
+    const hours = startDate.getHours();
+
+    // Tuesday (2) between 17:00-19:00
+    return dayOfWeek === WEEK_CONFIG.RESET_DAY && hours >= WEEK_CONFIG.RESET_HOUR && hours < 19;
+}
+
+/**
  * Format date for display
  */
 export function formatDate(timestamp) {
