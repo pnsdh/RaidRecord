@@ -40,15 +40,15 @@ function calculateJobFrequency(parses) {
 
 /**
  * Extract all-star data from zone rankings
- * @param {Object} allStarRankings - Zone rankings with all-star data
+ * @param {Object} zoneRankings - Zone rankings data
  * @returns {Object} Best all-star data
  */
-function extractAllStarData(allStarRankings) {
-    if (!allStarRankings) {
+function extractAllStarData(zoneRankings) {
+    if (!zoneRankings) {
         return { points: 0, rank: null, total: null };
     }
 
-    const allStars = allStarRankings.allStars || [];
+    const allStars = zoneRankings.allStars || [];
     if (allStars.length === 0) {
         return { points: 0, rank: null, total: null };
     }
@@ -96,7 +96,7 @@ function extractEncounterAllStars(zoneRankings) {
 function processTierResult(character, tier) {
     if (!character) return null;
 
-    const zoneRankings = character.zoneRankingsWithDifficulty;
+    const zoneRankings = character.zoneRankings;
     const encounterParses = character.encounterRankings?.ranks || [];
     const encounterId = tier.finalEncounterId;
 
@@ -120,7 +120,7 @@ function processTierResult(character, tier) {
 
     return {
         earliestClear,
-        allStarData: extractAllStarData(character.allStarRankings),
+        allStarData: extractAllStarData(zoneRankings),
         jobFrequency,
         encounterAllStars: extractEncounterAllStars(zoneRankings)
     };

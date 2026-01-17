@@ -62,18 +62,13 @@ export function buildTierQueryField(tier, index) {
     const alias = `tier${index}`;
     return `
         ${alias}: character(id: $characterId) {
-            zoneRankingsWithDifficulty: zoneRankings(
+            zoneRankings(
                 zoneID: $zoneId${index},
                 difficulty: $difficulty${index},
                 partition: $partition${index}
             )
             encounterRankings(
                 encounterID: $encounterId${index},
-                difficulty: $difficulty${index},
-                partition: $partition${index}
-            )
-            allStarRankings: zoneRankings(
-                zoneID: $zoneId${index},
                 difficulty: $difficulty${index},
                 partition: $partition${index}
             )
