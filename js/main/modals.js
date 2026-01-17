@@ -2,9 +2,9 @@
  * Modal management utilities
  */
 
-import { RAID_TIERS, getAllRaidTiers } from '../constants.js';
 import { StorageService } from './storage.js';
 import { MESSAGES } from '../config/messages.js';
+import { getRaidSelectionData, saveSelectedRaidIds } from '../search/raidSelection.js';
 
 /**
  * Base modal class with common functionality
@@ -104,30 +104,20 @@ export class RaidSelectionModal extends BaseModal {
      * Render raid selection UI
      */
     render() {
-        const selectedIds = StorageService.getSelectedRaids();
-        const allTiers = getAllRaidTiers();
-
+        const expansions = getRaidSelectionData();
         let html = '';
 
-        for (const expansionKey in RAID_TIERS) {
-            const expansion = RAID_TIERS[expansionKey];
-            const expansionName = expansion.expansion;
-
+        for (const expansion of expansions) {
             html += `<div class="expansion-group">`;
-            html += `<div class="expansion-header" data-expansion="${expansionKey}">${expansionName}</div>`;
+            html += `<div class="expansion-header" data-expansion="${expansion.key}">${expansion.name}</div>`;
             html += `<div class="tier-checkbox-list">`;
 
             for (const tier of expansion.tiers) {
-                const tierId = `${tier.zoneId}-${tier.partition}`;
-                const isChecked = !selectedIds || selectedIds.includes(tierId);
-                const typeClass = tier.type === 'SAVAGE' ? 'tier-type-savage' : 'tier-type-ultimate';
-                const typeLabel = tier.type === 'SAVAGE' ? '영식' : '절';
-
                 html += `
                     <div class="tier-checkbox-item">
-                        <input type="checkbox" id="raid-${tierId}" value="${tierId}" ${isChecked ? 'checked' : ''} data-expansion="${expansionKey}">
-                        <label for="raid-${tierId}">
-                            <span class="tier-type-badge ${typeClass}">${typeLabel}</span>
+                        <input type="checkbox" id="raid-${tier.id}" value="${tier.id}" ${tier.isSelected ? 'checked' : ''} data-expansion="${tier.expansionKey}">
+                        <label for="raid-${tier.id}">
+                            <span class="tier-type-badge ${tier.typeClass}">${tier.typeLabel}</span>
                             <span class="tier-name">${tier.fullName}</span>
                         </label>
                     </div>
@@ -187,7 +177,7 @@ export class RaidSelectionModal extends BaseModal {
             selectedIds.push(cb.value);
         });
 
-        StorageService.saveSelectedRaids(selectedIds);
+        saveSelectedRaidIds(selectedIds);
         this.close();
         alert(MESSAGES.RAID_SELECTION.SAVED(selectedIds.length));
     }

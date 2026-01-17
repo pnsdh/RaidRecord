@@ -3,9 +3,9 @@
  */
 
 import { getServerNameKR, JOB_COLORS } from '../constants.js';
-import { API_USAGE_THRESHOLDS } from '../config/config.js';
 import { attachTooltipListeners } from './tooltips.js';
 import { formatJobText, formatWeekBadge, formatAllStarScore, formatTierBadge, formatNumber } from './formatters.js';
+import { calculateApiUsage } from '../utils/apiUsage.js';
 
 /**
  * UI Controller for rendering raid history
@@ -275,30 +275,21 @@ export class UIController {
      * Update API usage display
      */
     updateApiUsage(rateLimitData) {
-        if (!rateLimitData) {
+        const usage = calculateApiUsage(rateLimitData);
+
+        if (!usage) {
             this.apiUsageSection.style.display = 'none';
             return;
         }
 
-        const { limitPerHour, pointsSpentThisHour, pointsResetIn } = rateLimitData;
-        const usagePercent = (pointsSpentThisHour / limitPerHour) * 100;
-
         // Update value with formatted numbers
-        this.apiUsageValue.textContent = `${formatNumber(pointsSpentThisHour)} / ${formatNumber(limitPerHour)} (${Math.round(usagePercent)}%)`;
+        this.apiUsageValue.textContent = `${formatNumber(usage.pointsSpent)} / ${formatNumber(usage.pointsLimit)} (${usage.usagePercent}%)`;
 
-        // Update color based on usage
-        this.apiUsageValue.className = 'usage-value';
-        if (usagePercent < API_USAGE_THRESHOLDS.LOW) {
-            this.apiUsageValue.classList.add('usage-low');
-        } else if (usagePercent < API_USAGE_THRESHOLDS.MEDIUM) {
-            this.apiUsageValue.classList.add('usage-medium');
-        } else {
-            this.apiUsageValue.classList.add('usage-high');
-        }
+        // Update color based on usage level
+        this.apiUsageValue.className = `usage-value usage-${usage.usageLevel}`;
 
         // Update reset time
-        const resetMinutes = Math.ceil(pointsResetIn / 60);
-        this.apiUsageReset.textContent = `(${resetMinutes}분 후 리셋)`;
+        this.apiUsageReset.textContent = `(${usage.resetMinutes}분 후 리셋)`;
 
         // Show section
         this.apiUsageSection.style.display = 'block';

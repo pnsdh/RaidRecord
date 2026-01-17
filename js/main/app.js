@@ -2,9 +2,10 @@
  * Main application controller
  */
 
-import { initializeAPI, saveCredentials, StorageService } from './storage.js';
+import { createAPIFromCredentials, saveCredentials, StorageService } from './storage.js';
 import { RaidHistorySearch, sortRaidHistory } from '../search.js';
 import { UIController } from '../ui.js';
+import { FFLogsAPI } from '../api.js';
 import { APP_CONFIG, UI_CONFIG, TIMING } from '../config/config.js';
 import { MESSAGES } from '../config/messages.js';
 import { SettingsModal, RaidSelectionModal } from './modals.js';
@@ -51,7 +52,7 @@ export class App {
      * Check if API credentials are saved
      */
     checkCredentials() {
-        this.api = initializeAPI();
+        this.api = createAPIFromCredentials(FFLogsAPI);
 
         if (!this.api) {
             // No credentials saved, show settings modal
@@ -78,7 +79,7 @@ export class App {
         saveCredentials(clientId, clientSecret);
 
         // Reinitialize API
-        this.api = initializeAPI();
+        this.api = createAPIFromCredentials(FFLogsAPI);
         this.search = new RaidHistorySearch(this.api, APP_CONFIG.REGION);
 
         // Close modal

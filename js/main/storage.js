@@ -2,7 +2,6 @@
  * Storage utilities for API credentials and settings
  */
 
-import { FFLogsAPI } from '../api.js';
 import { STORAGE_KEYS } from '../config/config.js';
 
 /**
@@ -122,52 +121,21 @@ export class StorageService {
     static saveSelectedRaids(ids) {
         this.setJSON('SELECTED_RAIDS', ids);
     }
-
-    /**
-     * Get access token
-     * @returns {string|null}
-     */
-    static getAccessToken() {
-        return this.get('ACCESS_TOKEN');
-    }
-
-    /**
-     * Save access token
-     * @param {string} token
-     */
-    static saveAccessToken(token) {
-        this.set('ACCESS_TOKEN', token);
-    }
-
-    /**
-     * Get token expiry time
-     * @returns {number|null}
-     */
-    static getTokenExpiry() {
-        const expiry = this.get('TOKEN_EXPIRY');
-        return expiry ? parseInt(expiry, 10) : null;
-    }
-
-    /**
-     * Save token expiry time
-     * @param {number} expiry
-     */
-    static saveTokenExpiry(expiry) {
-        this.set('TOKEN_EXPIRY', expiry.toString());
-    }
 }
 
 /**
- * Initialize API client from stored credentials
+ * Create API client from stored credentials
+ * @param {Function} APIClass - API class constructor (to avoid circular dependency)
+ * @returns {Object|null}
  */
-export function initializeAPI() {
+export function createAPIFromCredentials(APIClass) {
     const { clientId, clientSecret } = StorageService.getCredentials();
 
     if (!clientId || !clientSecret) {
         return null;
     }
 
-    return new FFLogsAPI(clientId, clientSecret);
+    return new APIClass(clientId, clientSecret);
 }
 
 /**

@@ -4,7 +4,7 @@
 
 import { API_CONFIG, TIMING } from '../config/config.js';
 import { getJobFromSpecId as mapJobFromSpecId } from '../config/jobs.js';
-import { StorageService } from '../main/storage.js';
+import { TokenStorage } from './tokenStorage.js';
 import { AppError, ErrorCodes } from '../errors.js';
 
 export class FFLogsAPICore {
@@ -21,8 +21,8 @@ export class FFLogsAPICore {
      */
     async getAccessToken() {
         // Check if we have a valid cached token
-        const cachedToken = StorageService.getAccessToken();
-        const cachedExpiry = StorageService.getTokenExpiry();
+        const cachedToken = TokenStorage.getToken();
+        const cachedExpiry = TokenStorage.getExpiry();
 
         if (cachedToken && cachedExpiry) {
             const now = Date.now();
@@ -58,8 +58,8 @@ export class FFLogsAPICore {
         this.tokenExpiry = Date.now() + (data.expires_in * 1000);
 
         // Cache the token
-        StorageService.saveAccessToken(this.accessToken);
-        StorageService.saveTokenExpiry(this.tokenExpiry);
+        TokenStorage.saveToken(this.accessToken);
+        TokenStorage.saveExpiry(this.tokenExpiry);
 
         return this.accessToken;
     }
