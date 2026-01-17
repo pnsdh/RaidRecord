@@ -192,7 +192,7 @@ export class UIController {
                 <thead>
                     <tr>
                         <th class="tooltip-header">레이드<span class="header-tooltip">모든 레이드는 흔히 '현역'이라고 부르는 첫번째 파티션만 집계합니다.<br>예를 들어, 영웅 난이도의 경우 짝수 패치 데이터만 취합하며, 홀수는 취합하지 않습니다.</span></th>
-                        <th class="tooltip-header">주차<span class="header-tooltip">화요일 5시를 기점으로 클리어 주차를 구분합니다.<br>화요일 5시 전에 입장하여 화요일 5시 이후 클리어 한 경우 올바르게 주차가 표시되지 않을 수 있으니 유의해주세요.</span></th>
+                        <th class="tooltip-header">주차<span class="header-tooltip">화요일 17시를 기점으로 클리어 주차를 구분합니다.<br>화요일 17시~19시 사이의 클리어는 17시 이전 진입하여 전 주차로 클리어 한 것으로 반영합니다. 이 경우 올바르지 않은 결과일 수 있으니 유의해주세요.</span></th>
                         <th class="date-col">날짜</th>
                         <th class="tooltip-header">직업<span class="header-tooltip">최초로 최종층을 클리어한 직업을 표시합니다.<br>올스타 직업과 다를 수 있습니다.<br>다른 직업으로도 클리어한 경우, +N으로 직업의 가짓수가 표현됩니다.<br>커서를 올려 더 자세한 정보를 확인할 수 있습니다.</span></th>
                         <th class="tooltip-header">올스타<span class="header-tooltip">모든 층의 올스타 점수를 합산하여 120점 만점으로 표준화한 점수입니다.</span></th>
@@ -203,8 +203,11 @@ export class UIController {
                 <tbody>
         `;
 
+        let previousExpansion = null;
         for (const entry of raidHistory) {
-            html += this.generateRowHTML(entry);
+            const isNewExpansion = previousExpansion !== null && entry.tier.expansion !== previousExpansion;
+            html += this.generateRowHTML(entry, isNewExpansion);
+            previousExpansion = entry.tier.expansion;
         }
 
         html += `
@@ -217,8 +220,10 @@ export class UIController {
 
     /**
      * Generate HTML for a single table row
+     * @param {Object} entry - Raid history entry
+     * @param {boolean} isNewExpansion - Whether this row starts a new expansion
      */
-    generateRowHTML(entry) {
+    generateRowHTML(entry, isNewExpansion = false) {
         const { tier, clearData } = entry;
 
         // Create raid name badge with tier name inside
@@ -251,8 +256,10 @@ export class UIController {
             bossCount
         );
 
+        const rowClass = isNewExpansion ? 'raid-row expansion-first' : 'raid-row';
+
         return `
-            <tr class="raid-row" data-report="${clearData.reportCode || ''}" data-fight="${clearData.fightId || ''}" data-timestamp="${clearData.clearTimestamp || ''}" data-fight-start="${clearData.fightStartTime || ''}" data-week-ambiguous="${clearData.isWeekAmbiguous || false}" data-week="${clearData.clearWeek || 0}" data-tier='${JSON.stringify(tier).replace(/'/g, "&apos;")}' data-encounters='${JSON.stringify(clearData.encounterAllStars || []).replace(/'/g, "&apos;")}' data-party='${JSON.stringify(clearData.partyMembers || []).replace(/'/g, "&apos;")}' data-jobs='${JSON.stringify(clearData.jobFrequency || []).replace(/'/g, "&apos;")}'>
+            <tr class="${rowClass}" data-report="${clearData.reportCode || ''}" data-fight="${clearData.fightId || ''}" data-timestamp="${clearData.clearTimestamp || ''}" data-fight-start="${clearData.fightStartTime || ''}" data-week-ambiguous="${clearData.isWeekAmbiguous || false}" data-week="${clearData.clearWeek || 0}" data-tier='${JSON.stringify(tier).replace(/'/g, "&apos;")}' data-encounters='${JSON.stringify(clearData.encounterAllStars || []).replace(/'/g, "&apos;")}' data-party='${JSON.stringify(clearData.partyMembers || []).replace(/'/g, "&apos;")}' data-jobs='${JSON.stringify(clearData.jobFrequency || []).replace(/'/g, "&apos;")}'>
                 <td>${raidNameBadge}</td>
                 <td>${weekBadge}</td>
                 <td class="date-col">${dateText}</td>

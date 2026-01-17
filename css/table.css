@@ -45,6 +45,11 @@
     border-bottom: none;
 }
 
+/* Expansion separator - subtle border for first row of new expansion */
+.results-table tbody tr.expansion-first td {
+    border-top: 2px solid var(--border-color);
+}
+
 /* Raid Name Cell */
 .raid-name-cell {
     display: flex;
@@ -148,12 +153,12 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.4rem 0;
+    padding: 4px 0;
 }
 
 .member-name {
     color: var(--text-primary);
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 /* Mobile Responsive Design */

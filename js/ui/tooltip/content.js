@@ -74,7 +74,7 @@ export function createRaidInfoHTML(tier) {
         { label: '종류', value: typeText },
         { label: '확장팩', value: tier.expansion },
         { label: '버전', value: tier.version },
-        { label: '패치 날짜', value: tier.releaseDate }
+        { label: '개방 일자', value: tier.releaseDate }
     ];
 
     let html = `<table style="${TABLE_STYLES.table}"><tbody>`;
@@ -111,7 +111,7 @@ export function createWeekTooltipHTML(isWeekAmbiguous, week) {
 
     const nextWeek = week + 1;
 
-    return `<p style="color: #ff8000; font-size: 0.9em; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); max-width: 320px;">⚠️ ${week}주차인지, ${nextWeek}주차인지 정확하게 알 수 없는 로그입니다. 화요일 19시까지 클리어 한 경우 화요일 17시 전에 인스턴스에 입장하여, 해당 인스턴스에서 클리어 했다고 가정합니다.</p>`;
+    return `<p style="color: #ff8000; font-size: 0.9em; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); max-width: 320px;">⚠️ ${week}주차인지, ${nextWeek}주차인지 정확하게 알 수 없는 로그입니다. 화요일 17시~19시 사이의 클리어는 17시 이전 진입하여 전 주차로 클리어 한 것으로 반영합니다. 이 경우 올바르지 않은 결과일 수 있으니 유의해주세요.</p>`;
 }
 
 /**
