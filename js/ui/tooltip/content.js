@@ -5,6 +5,7 @@
 
 import { getServerNameKR, getJobOrder, JOB_COLORS, JOB_NAMES_KR } from '../../constants.js';
 import { formatJobBadge, getPercentileColor, formatNumber } from '../formatters.js';
+import { DAY_NAMES } from '../../config/time.js';
 
 // Common table styles
 export const TABLE_STYLES = {
@@ -89,8 +90,7 @@ export function createRaidInfoHTML(tier) {
  * Format date and time string from date (single line)
  */
 function formatDateTimeString(date) {
-    const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
-    const dayName = dayNames[date.getDay()];
+    const dayName = DAY_NAMES.FULL[date.getDay()];
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');

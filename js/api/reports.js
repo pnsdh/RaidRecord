@@ -7,6 +7,13 @@
  */
 export class ReportsAPI {
     /**
+     * @param {Object} core - FFLogsAPICore instance
+     */
+    constructor(core) {
+        this.core = core;
+    }
+
+    /**
      * Get party members for multiple reports in a single batch query
      */
     async getBatchPartyMembers(reportFights) {
@@ -74,7 +81,7 @@ export class ReportsAPI {
             }
         `;
 
-        const data = await this.query(queryString, variables, true);
+        const data = await this.core.query(queryString, variables, true);
 
         // Initialize results array with empty data for all reports
         const results = reportFights.map(() => ({ partyMembers: [], fightStartTime: null, fightEndTime: null }));
@@ -122,7 +129,7 @@ export class ReportsAPI {
             const partyMembers = realPlayers.map(player => ({
                 name: player.name,
                 server: player.server,
-                job: this.getJobFromSpecId(player.subType)
+                job: this.core.getJobFromSpecId(player.subType)
             }));
 
             // Calculate absolute fight times (report start + fight offset)

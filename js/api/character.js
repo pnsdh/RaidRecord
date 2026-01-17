@@ -7,6 +7,13 @@
  */
 export class CharacterAPI {
     /**
+     * @param {Object} core - FFLogsAPICore instance
+     */
+    constructor(core) {
+        this.core = core;
+    }
+
+    /**
      * Search for a character by name and server
      */
     async searchCharacter(characterName, serverName, serverRegion) {
@@ -27,7 +34,7 @@ export class CharacterAPI {
             }
         `;
 
-        const data = await this.query(queryString, {
+        const data = await this.core.query(queryString, {
             name: characterName,
             server: serverName.toLowerCase(),
             region: serverRegion
@@ -94,7 +101,7 @@ export class CharacterAPI {
             }
         `;
 
-        const data = await this.query(queryString, variables, true);
+        const data = await this.core.query(queryString, variables, true);
 
         // Process results for each tier
         const results = [];

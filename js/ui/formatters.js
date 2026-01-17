@@ -4,6 +4,7 @@
  */
 
 import { JOB_COLORS, JOB_NAMES_KR, JOB_ABBR_KR } from '../constants.js';
+import { PERCENTILE_THRESHOLDS, PERCENTILE_COLORS } from '../config/config.js';
 
 /**
  * Format number with thousand separators (e.g., 3600 -> 3,600)
@@ -24,13 +25,13 @@ function calculatePercentile(rank, total) {
  * Get FFLogs color based on percentile
  */
 export function getPercentileColor(percentile) {
-    if (percentile >= 100) return '#e5cc80';      // Gold - rank 1
-    if (percentile >= 99) return '#e268a8';       // Pink - 99-100%
-    if (percentile >= 95) return '#ff8000';       // Orange - 95-99%
-    if (percentile >= 75) return '#a335ee';       // Purple - 75-95%
-    if (percentile >= 50) return '#0070ff';       // Blue - 50-75%
-    if (percentile >= 25) return '#1eff00';       // Green - 25-50%
-    return '#666666';                             // Gray - < 25%
+    if (percentile >= PERCENTILE_THRESHOLDS.GOLD) return PERCENTILE_COLORS.GOLD;
+    if (percentile >= PERCENTILE_THRESHOLDS.PINK) return PERCENTILE_COLORS.PINK;
+    if (percentile >= PERCENTILE_THRESHOLDS.ORANGE) return PERCENTILE_COLORS.ORANGE;
+    if (percentile >= PERCENTILE_THRESHOLDS.PURPLE) return PERCENTILE_COLORS.PURPLE;
+    if (percentile >= PERCENTILE_THRESHOLDS.BLUE) return PERCENTILE_COLORS.BLUE;
+    if (percentile >= PERCENTILE_THRESHOLDS.GREEN) return PERCENTILE_COLORS.GREEN;
+    return PERCENTILE_COLORS.GRAY;
 }
 
 /**

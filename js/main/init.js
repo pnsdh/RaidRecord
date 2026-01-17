@@ -3,7 +3,8 @@
  * Handles DOM element references, initial state setup, and event listener binding
  */
 
-import { STORAGE_KEYS, KR_SERVERS } from '../constants.js';
+import { KR_SERVERS } from '../constants.js';
+import { StorageService } from './storage.js';
 
 /**
  * Initialize DOM element references
@@ -36,7 +37,7 @@ export function populateServerSelect(serverSelect) {
     });
 
     // Load saved server
-    const savedServer = localStorage.getItem(STORAGE_KEYS.SERVER);
+    const savedServer = StorageService.getServer();
     if (savedServer) {
         serverSelect.value = savedServer;
     }
@@ -61,14 +62,12 @@ export function attachEventListeners(app, elements, modals) {
 
     // Raid Selection
     raidSelectBtn.addEventListener('click', () => raidSelectionModal.open());
-    raidSelectionModal.closeRaidSelectModal.addEventListener('click', () => raidSelectionModal.close());
     selectAllRaidsBtn.addEventListener('click', () => raidSelectionModal.selectAll());
     deselectAllRaidsBtn.addEventListener('click', () => raidSelectionModal.deselectAll());
     saveRaidSelectionBtn.addEventListener('click', () => raidSelectionModal.save());
 
     // Settings
     settingsBtn.addEventListener('click', () => settingsModal.open());
-    settingsModal.closeSettingsModal.addEventListener('click', () => settingsModal.close());
     saveSettingsBtn.addEventListener('click', () => app.saveSettings());
 
     // Export - Without Character Name
@@ -81,18 +80,6 @@ export function attachEventListeners(app, elements, modals) {
     exportImageWithNameBtn.addEventListener('click', async () => {
         const { exportAsImage } = await import('../ui.js');
         exportAsImage(true);
-    });
-
-    // Close modals on outside click
-    raidSelectionModal.raidSelectModal.addEventListener('click', (e) => {
-        if (e.target === raidSelectionModal.raidSelectModal) {
-            raidSelectionModal.close();
-        }
-    });
-    settingsModal.settingsModal.addEventListener('click', (e) => {
-        if (e.target === settingsModal.settingsModal) {
-            settingsModal.close();
-        }
     });
 
     // Copy buttons in settings modal

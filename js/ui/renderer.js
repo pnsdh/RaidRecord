@@ -3,6 +3,7 @@
  */
 
 import { getServerNameKR, JOB_COLORS } from '../constants.js';
+import { API_USAGE_THRESHOLDS } from '../config/config.js';
 import { attachTooltipListeners } from './tooltips.js';
 import { formatJobText, formatWeekBadge, formatAllStarScore, formatTierBadge, formatNumber } from './formatters.js';
 
@@ -25,36 +26,37 @@ export class UIController {
         this.apiUsageSection = document.getElementById('apiUsageSection');
         this.apiUsageValue = document.getElementById('apiUsageValue');
         this.apiUsageReset = document.getElementById('apiUsageReset');
+
+        // Cache control elements for enable/disable operations
+        this.controls = {
+            searchInput: document.getElementById('characterSearch'),
+            serverSelect: document.getElementById('serverSelect'),
+            raidSelectBtn: document.getElementById('raidSelectBtn'),
+            settingsBtn: document.getElementById('settingsBtn')
+        };
+    }
+
+    /**
+     * Set enabled state for all input controls
+     */
+    setControlsEnabled(enabled) {
+        Object.values(this.controls).forEach(el => {
+            if (el) el.disabled = !enabled;
+        });
     }
 
     /**
      * Disable all input controls during search
      */
     disableControls() {
-        const searchInput = document.getElementById('characterSearch');
-        const serverSelect = document.getElementById('serverSelect');
-        const raidSelectBtn = document.getElementById('raidSelectBtn');
-        const settingsBtn = document.getElementById('settingsBtn');
-
-        if (searchInput) searchInput.disabled = true;
-        if (serverSelect) serverSelect.disabled = true;
-        if (raidSelectBtn) raidSelectBtn.disabled = true;
-        if (settingsBtn) settingsBtn.disabled = true;
+        this.setControlsEnabled(false);
     }
 
     /**
      * Enable all input controls after search
      */
     enableControls() {
-        const searchInput = document.getElementById('characterSearch');
-        const serverSelect = document.getElementById('serverSelect');
-        const raidSelectBtn = document.getElementById('raidSelectBtn');
-        const settingsBtn = document.getElementById('settingsBtn');
-
-        if (searchInput) searchInput.disabled = false;
-        if (serverSelect) serverSelect.disabled = false;
-        if (raidSelectBtn) raidSelectBtn.disabled = false;
-        if (settingsBtn) settingsBtn.disabled = false;
+        this.setControlsEnabled(true);
     }
 
     /**
@@ -279,9 +281,9 @@ export class UIController {
 
         // Update color based on usage
         this.apiUsageValue.className = 'usage-value';
-        if (usagePercent < 50) {
+        if (usagePercent < API_USAGE_THRESHOLDS.LOW) {
             this.apiUsageValue.classList.add('usage-low');
-        } else if (usagePercent < 80) {
+        } else if (usagePercent < API_USAGE_THRESHOLDS.MEDIUM) {
             this.apiUsageValue.classList.add('usage-medium');
         } else {
             this.apiUsageValue.classList.add('usage-high');

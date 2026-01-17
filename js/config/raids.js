@@ -2,7 +2,7 @@
  * Raid tier data and utilities
  */
 
-import { STORAGE_KEYS } from './config.js';
+import { StorageService } from '../main/storage.js';
 
 // Raid tier data structure
 // Each tier contains: type, full name, short name, release date, zone ID, partition ID
@@ -181,7 +181,7 @@ export function getAllRaidTiers() {
  * Get selected raid tiers based on user preference
  */
 export function getSelectedRaidTiers() {
-    const selectedIds = JSON.parse(localStorage.getItem(STORAGE_KEYS.SELECTED_RAIDS) || 'null');
+    const selectedIds = StorageService.getSelectedRaids();
     const allTiers = getAllRaidTiers();
 
     // If no selection saved, return all tiers

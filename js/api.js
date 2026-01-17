@@ -14,15 +14,9 @@ export class FFLogsAPI extends FFLogsAPICore {
     constructor(clientId, clientSecret) {
         super(clientId, clientSecret);
 
-        // Initialize sub-APIs with reference to this instance
-        this.characterAPI = new CharacterAPI();
-        this.reportsAPI = new ReportsAPI();
-
-        // Bind query method to sub-APIs
-        this.characterAPI.query = this.query.bind(this);
-        this.characterAPI.getJobFromSpecId = this.getJobFromSpecId.bind(this);
-        this.reportsAPI.query = this.query.bind(this);
-        this.reportsAPI.getJobFromSpecId = this.getJobFromSpecId.bind(this);
+        // Initialize sub-APIs with reference to this instance (core)
+        this.characterAPI = new CharacterAPI(this);
+        this.reportsAPI = new ReportsAPI(this);
     }
 
     /**

@@ -2,14 +2,15 @@
  * Main application controller
  */
 
-import { initializeAPI, saveCredentials } from './storage.js';
+import { initializeAPI, saveCredentials, StorageService } from './storage.js';
 import { RaidHistorySearch, sortRaidHistory } from '../search.js';
 import { UIController } from '../ui.js';
-import { STORAGE_KEYS, APP_CONFIG, TIMING, KR_SERVERS } from '../constants.js';
-import { UI_CONFIG } from '../config/config.js';
+import { APP_CONFIG, UI_CONFIG, TIMING } from '../config/config.js';
 import { SettingsModal, RaidSelectionModal } from './modals.js';
 import { initializeElements, populateServerSelect, attachEventListeners } from './init.js';
 import { parseCharacterInput } from '../utils/characterParser.js';
+import { isCharacterNotFoundError } from '../errors.js';
+import { ServerSelector } from './serverSelector.js';
 
 /**
  * Main App class
@@ -24,6 +25,9 @@ export class App {
         // Initialize elements
         this.elements = initializeElements();
         populateServerSelect(this.elements.serverSelect);
+
+        // Initialize server selector
+        this.serverSelector = new ServerSelector(this.ui);
 
         // Initialize modals
         this.settingsModal = new SettingsModal(this);
@@ -86,7 +90,7 @@ export class App {
      * Load last search from storage
      */
     loadLastSearch() {
-        const lastCharacter = localStorage.getItem(STORAGE_KEYS.LAST_SEARCH);
+        const lastCharacter = StorageService.getLastSearch();
         if (lastCharacter) {
             this.elements.searchInput.placeholder = lastCharacter;
         }
@@ -96,7 +100,7 @@ export class App {
      * Save last search to storage
      */
     saveLastSearch(characterName) {
-        localStorage.setItem(STORAGE_KEYS.LAST_SEARCH, characterName);
+        StorageService.saveLastSearch(characterName);
     }
 
     /**
@@ -107,7 +111,7 @@ export class App {
      */
     async performSearch(characterName, serverName) {
         // Save selected server for next search
-        localStorage.setItem(STORAGE_KEYS.SERVER, serverName);
+        StorageService.saveServer(serverName);
 
         // Save character name for next search
         this.saveLastSearch(characterName);
@@ -181,7 +185,7 @@ export class App {
 
         // If no input, use last search
         if (!inputValue) {
-            inputValue = localStorage.getItem(STORAGE_KEYS.LAST_SEARCH) || '';
+            inputValue = StorageService.getLastSearch() || '';
         }
 
         if (!inputValue) {
@@ -208,14 +212,9 @@ export class App {
 
         // If no server specified at all, show all server options
         if (!targetServer) {
-            const allServers = KR_SERVERS.map(s => s.nameEN);
-            this.ui.showServerSelection(
+            this.serverSelector.showInitialSelection(
                 characterName,
-                allServers,
-                (chosenServer) => {
-                    this.searchWithServer(characterName, chosenServer);
-                },
-                `<strong>${characterName}</strong> 캐릭터를 검색할 서버를 선택해주세요.`
+                (chosenServer) => this.searchWithServer(characterName, chosenServer)
             );
             return;
         }
@@ -236,7 +235,7 @@ export class App {
             this.search.resetCancel();
             this.updateSearchButton();
             this.ui.disableControls();
-            this.ui.hideServerSelection();
+            this.serverSelector.hide();
 
             // Perform search
             const { character, raidHistory } = await this.performSearch(characterName, serverName);
@@ -247,19 +246,12 @@ export class App {
             // Check if we got any results
             if (sortedHistory.length === 0) {
                 // No results found, show server selection for other servers
-                const otherServers = KR_SERVERS
-                    .map(s => s.nameEN)
-                    .filter(s => s.toLowerCase() !== serverName.toLowerCase());
-
-                if (otherServers.length > 0) {
-                    this.ui.showServerSelection(
-                        characterName,
-                        otherServers,
-                        (chosenServer) => {
-                            this.searchWithServer(characterName, chosenServer);
-                        },
-                        `<strong>${characterName}@${this.getServerDisplayName(serverName)}</strong> 캐릭터의 레이드 기록을 찾을 수 없습니다.<br>다른 서버를 선택해주세요.`
-                    );
+                const hasOtherServers = this.serverSelector.showNoRecordsSelection(
+                    characterName,
+                    serverName,
+                    (chosenServer) => this.searchWithServer(characterName, chosenServer)
+                );
+                if (hasOtherServers) {
                     return;
                 }
             }
@@ -272,21 +264,14 @@ export class App {
 
         } catch (error) {
             // Check if it's a "character not found" error
-            if (error.message.includes('Character not found') || error.message.includes('캐릭터를 찾을 수 없습니다')) {
+            if (isCharacterNotFoundError(error)) {
                 // Show server selection for other servers
-                const otherServers = KR_SERVERS
-                    .map(s => s.nameEN)
-                    .filter(s => s.toLowerCase() !== serverName.toLowerCase());
-
-                if (otherServers.length > 0) {
-                    this.ui.showServerSelection(
-                        characterName,
-                        otherServers,
-                        (chosenServer) => {
-                            this.searchWithServer(characterName, chosenServer);
-                        },
-                        `<strong>${characterName}@${this.getServerDisplayName(serverName)}</strong> 캐릭터를 찾을 수 없습니다.<br>다른 서버를 선택해주세요.`
-                    );
+                const hasOtherServers = this.serverSelector.showNotFoundSelection(
+                    characterName,
+                    serverName,
+                    (chosenServer) => this.searchWithServer(characterName, chosenServer)
+                );
+                if (hasOtherServers) {
                     return;
                 }
             }
@@ -301,14 +286,6 @@ export class App {
             this.updateSearchButton();
             this.ui.enableControls();
         }
-    }
-
-    /**
-     * Get display name for server (Korean)
-     */
-    getServerDisplayName(serverEN) {
-        const server = KR_SERVERS.find(s => s.nameEN.toLowerCase() === serverEN.toLowerCase());
-        return server ? server.nameKR : serverEN;
     }
 
     /**

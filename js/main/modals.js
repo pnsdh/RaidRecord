@@ -2,74 +2,110 @@
  * Modal management utilities
  */
 
-import { STORAGE_KEYS, RAID_TIERS, getAllRaidTiers } from '../constants.js';
+import { RAID_TIERS, getAllRaidTiers } from '../constants.js';
+import { StorageService } from './storage.js';
+
+/**
+ * Base modal class with common functionality
+ */
+class BaseModal {
+    constructor(modalId, closeButtonId) {
+        this.modal = document.getElementById(modalId);
+        this.closeButton = document.getElementById(closeButtonId);
+
+        this.setupEventListeners();
+    }
+
+    /**
+     * Setup common event listeners
+     */
+    setupEventListeners() {
+        // Close button click
+        if (this.closeButton) {
+            this.closeButton.addEventListener('click', () => this.close());
+        }
+
+        // Click outside modal to close
+        if (this.modal) {
+            this.modal.addEventListener('click', (e) => {
+                if (e.target === this.modal) {
+                    this.close();
+                }
+            });
+        }
+    }
+
+    /**
+     * Open modal - can be overridden by subclasses
+     */
+    open() {
+        this.beforeOpen();
+        if (this.modal) {
+            this.modal.style.display = 'flex';
+        }
+    }
+
+    /**
+     * Close modal
+     */
+    close() {
+        if (this.modal) {
+            this.modal.style.display = 'none';
+        }
+    }
+
+    /**
+     * Hook for subclasses to execute before opening
+     */
+    beforeOpen() {
+        // Override in subclasses
+    }
+}
 
 /**
  * Settings modal functionality
  */
-export class SettingsModal {
+export class SettingsModal extends BaseModal {
     constructor(app) {
+        super('settingsModal', 'closeSettingsModal');
         this.app = app;
-        this.settingsModal = document.getElementById('settingsModal');
-        this.closeSettingsModal = document.getElementById('closeSettingsModal');
         this.clientIdInput = document.getElementById('clientId');
         this.clientSecretInput = document.getElementById('clientSecret');
     }
 
     /**
-     * Open settings modal
+     * Load settings before opening
      */
-    open() {
-        // Load current settings
-        const clientId = localStorage.getItem(STORAGE_KEYS.CLIENT_ID) || '';
-        const clientSecret = localStorage.getItem(STORAGE_KEYS.CLIENT_SECRET) || '';
+    beforeOpen() {
+        const { clientId, clientSecret } = StorageService.getCredentials();
 
-        this.clientIdInput.value = clientId;
-        this.clientSecretInput.value = clientSecret;
-
-        this.settingsModal.style.display = 'flex';
-    }
-
-    /**
-     * Close settings modal
-     */
-    close() {
-        this.settingsModal.style.display = 'none';
+        this.clientIdInput.value = clientId || '';
+        this.clientSecretInput.value = clientSecret || '';
     }
 }
 
 /**
  * Raid selection modal functionality
  */
-export class RaidSelectionModal {
+export class RaidSelectionModal extends BaseModal {
     constructor(app) {
+        super('raidSelectModal', 'closeRaidSelectModal');
         this.app = app;
-        this.raidSelectModal = document.getElementById('raidSelectModal');
-        this.closeRaidSelectModal = document.getElementById('closeRaidSelectModal');
         this.raidSelectionList = document.getElementById('raidSelectionList');
     }
 
     /**
-     * Open raid selection modal
+     * Render UI before opening
      */
-    open() {
-        // Generate raid selection UI
+    beforeOpen() {
         this.render();
-        this.raidSelectModal.style.display = 'flex';
-    }
-
-    /**
-     * Close raid selection modal
-     */
-    close() {
-        this.raidSelectModal.style.display = 'none';
     }
 
     /**
      * Render raid selection UI
      */
     render() {
-        const selectedIds = JSON.parse(localStorage.getItem(STORAGE_KEYS.SELECTED_RAIDS) || 'null');
+        const selectedIds = StorageService.getSelectedRaids();
         const allTiers = getAllRaidTiers();
 
         let html = '';
@@ -152,7 +188,7 @@ export class RaidSelectionModal {
             selectedIds.push(cb.value);
         });
 
-        localStorage.setItem(STORAGE_KEYS.SELECTED_RAIDS, JSON.stringify(selectedIds));
+        StorageService.saveSelectedRaids(selectedIds);
         this.close();
         alert(`${selectedIds.length}개의 레이드가 선택되었습니다.`);
     }

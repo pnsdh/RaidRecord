@@ -2,8 +2,9 @@
  * FFLogs API Core - Authentication and base query functionality
  */
 
-import { API_CONFIG, STORAGE_KEYS, TIMING } from '../config/config.js';
+import { API_CONFIG, TIMING } from '../config/config.js';
 import { getJobFromSpecId as mapJobFromSpecId } from '../config/jobs.js';
+import { StorageService } from '../main/storage.js';
 
 export class FFLogsAPICore {
     constructor(clientId, clientSecret) {
@@ -19,17 +20,16 @@ export class FFLogsAPICore {
      */
     async getAccessToken() {
         // Check if we have a valid cached token
-        const cachedToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-        const cachedExpiry = localStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRY);
+        const cachedToken = StorageService.getAccessToken();
+        const cachedExpiry = StorageService.getTokenExpiry();
 
         if (cachedToken && cachedExpiry) {
-            const expiryTime = parseInt(cachedExpiry);
             const now = Date.now();
 
             // If token expires in more than the threshold, use it
-            if (expiryTime - now > TIMING.TOKEN_REFRESH_THRESHOLD) {
+            if (cachedExpiry - now > TIMING.TOKEN_REFRESH_THRESHOLD) {
                 this.accessToken = cachedToken;
-                this.tokenExpiry = expiryTime;
+                this.tokenExpiry = cachedExpiry;
                 return this.accessToken;
             }
         }
@@ -57,8 +57,8 @@ export class FFLogsAPICore {
         this.tokenExpiry = Date.now() + (data.expires_in * 1000);
 
         // Cache the token
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, this.accessToken);
-        localStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRY, this.tokenExpiry.toString());
+        StorageService.saveAccessToken(this.accessToken);
+        StorageService.saveTokenExpiry(this.tokenExpiry);
 
         return this.accessToken;
     }

@@ -3,6 +3,7 @@
  */
 
 import { getServerNameKR } from '../constants.js';
+import { AppError, ErrorCodes } from '../errors.js';
 
 /**
  * Parse character search input
@@ -32,7 +33,7 @@ export async function searchCharacter(api, searchInput, region) {
 
     if (!character) {
         const serverNameKR = getServerNameKR(serverName);
-        throw new Error(`캐릭터를 찾을 수 없습니다: ${characterName} @ ${serverNameKR}`);
+        throw new AppError(`캐릭터를 찾을 수 없습니다: ${characterName} @ ${serverNameKR}`, ErrorCodes.CHARACTER_NOT_FOUND);
     }
 
     return character;
