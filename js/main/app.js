@@ -6,6 +6,7 @@ import { initializeAPI, saveCredentials, StorageService } from './storage.js';
 import { RaidHistorySearch, sortRaidHistory } from '../search.js';
 import { UIController } from '../ui.js';
 import { APP_CONFIG, UI_CONFIG, TIMING } from '../config/config.js';
+import { MESSAGES } from '../config/messages.js';
 import { SettingsModal, RaidSelectionModal } from './modals.js';
 import { initializeElements, populateServerSelect, attachEventListeners } from './init.js';
 import { parseCharacterInput } from '../utils/characterParser.js';
@@ -69,7 +70,7 @@ export class App {
         const clientSecret = this.settingsModal.clientSecretInput.value.trim();
 
         if (!clientId || !clientSecret) {
-            alert('Client ID와 Client Secret을 입력해주세요.');
+            alert(MESSAGES.SETTINGS.MISSING_CREDENTIALS);
             return;
         }
 
@@ -83,7 +84,7 @@ export class App {
         // Close modal
         this.settingsModal.close();
 
-        alert('설정이 저장되었습니다.');
+        alert(MESSAGES.SETTINGS.SAVED);
     }
 
     /**
@@ -173,7 +174,7 @@ export class App {
     async handleSearch() {
         // If already searching, confirm cancellation
         if (this.isSearching) {
-            const confirmCancel = confirm('검색을 취소하시겠습니까?');
+            const confirmCancel = confirm(MESSAGES.GENERAL.CONFIRM_CANCEL_SEARCH);
             if (confirmCancel) {
                 this.cancelSearch();
             }
@@ -189,12 +190,12 @@ export class App {
         }
 
         if (!inputValue) {
-            alert('캐릭터명을 입력해주세요.');
+            alert(MESSAGES.SEARCH.ENTER_CHARACTER_NAME);
             return;
         }
 
         if (!this.api || !this.search) {
-            alert('먼저 FFLogs API 설정을 완료해주세요.');
+            alert(MESSAGES.SETTINGS.COMPLETE_API_SETTINGS);
             this.settingsModal.open();
             return;
         }
@@ -203,7 +204,7 @@ export class App {
         const { characterName, serverName: parsedServer } = parseCharacterInput(inputValue);
 
         if (!characterName) {
-            alert('올바른 캐릭터명을 입력해주세요.');
+            alert(MESSAGES.SEARCH.INVALID_CHARACTER_NAME);
             return;
         }
 
@@ -276,7 +277,7 @@ export class App {
                 }
             }
 
-            this.ui.showError(error.message || '검색 중 오류가 발생했습니다.');
+            this.ui.showError(error.message || MESSAGES.SEARCH.SEARCH_ERROR);
 
             // Still try to update API usage on error
             this.updateApiUsage();

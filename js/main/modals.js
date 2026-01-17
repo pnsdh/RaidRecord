@@ -4,6 +4,7 @@
 
 import { RAID_TIERS, getAllRaidTiers } from '../constants.js';
 import { StorageService } from './storage.js';
+import { MESSAGES } from '../config/messages.js';
 
 /**
  * Base modal class with common functionality
@@ -190,6 +191,6 @@ export class RaidSelectionModal extends BaseModal {
 
         StorageService.saveSelectedRaids(selectedIds);
         this.close();
-        alert(`${selectedIds.length}개의 레이드가 선택되었습니다.`);
+        alert(MESSAGES.RAID_SELECTION.SAVED(selectedIds.length));
     }
 }

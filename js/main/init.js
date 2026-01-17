@@ -5,6 +5,7 @@
 
 import { KR_SERVERS } from '../constants.js';
 import { StorageService } from './storage.js';
+import { MESSAGES } from '../config/messages.js';
 
 /**
  * Initialize DOM element references
@@ -93,7 +94,7 @@ export function attachEventListeners(app, elements, modals) {
                     e.target.textContent = originalText;
                 }, 1000);
             }).catch(() => {
-                alert('복사에 실패했습니다.');
+                alert(MESSAGES.GENERAL.COPY_FAILED);
             });
         }
     });

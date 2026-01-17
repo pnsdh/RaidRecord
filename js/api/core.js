@@ -5,6 +5,7 @@
 import { API_CONFIG, TIMING } from '../config/config.js';
 import { getJobFromSpecId as mapJobFromSpecId } from '../config/jobs.js';
 import { StorageService } from '../main/storage.js';
+import { AppError, ErrorCodes } from '../errors.js';
 
 export class FFLogsAPICore {
     constructor(clientId, clientSecret) {
@@ -47,7 +48,7 @@ export class FFLogsAPICore {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to obtain access token. Check your API credentials.');
+            throw new AppError('Failed to obtain access token. Check your API credentials.', ErrorCodes.AUTH_ERROR);
         }
 
         const data = await response.json();
@@ -96,7 +97,7 @@ export class FFLogsAPICore {
         });
 
         if (!response.ok) {
-            throw new Error(`API query failed: ${response.statusText}`);
+            throw new AppError(`API query failed: ${response.statusText}`, ErrorCodes.NETWORK_ERROR);
         }
 
         const result = await response.json();
@@ -104,7 +105,7 @@ export class FFLogsAPICore {
         // GraphQL can return partial data with errors
         // Only throw if there's no data at all
         if (result.errors && !result.data) {
-            throw new Error(result.errors[0].message);
+            throw new AppError(result.errors[0].message, ErrorCodes.NETWORK_ERROR);
         }
 
         // Log errors but continue if we have partial data

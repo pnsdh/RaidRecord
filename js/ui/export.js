@@ -2,6 +2,8 @@
  * Image export functionality for raid history tables
  */
 
+import { MESSAGES } from '../config/messages.js';
+
 // Export configuration constants
 const EXPORT_CONFIG = {
     TABLE_WIDTH: 700,           // Base table width in pixels
@@ -137,7 +139,7 @@ export async function exportAsImage(includeCharacterName = false) {
     const resultsSection = document.getElementById('resultsSection');
 
     if (!resultsSection) {
-        alert('내보낼 결과가 없습니다.');
+        alert(MESSAGES.EXPORT.NO_RESULTS);
         return;
     }
 
@@ -151,7 +153,7 @@ export async function exportAsImage(includeCharacterName = false) {
         if (includeCharacterName) {
             const headerClone = createStyledHeader(resultsSection);
             if (!headerClone) {
-                alert('캡처할 요소를 찾을 수 없습니다.');
+                alert(MESSAGES.EXPORT.ELEMENT_NOT_FOUND);
                 return;
             }
             tempContainer.appendChild(headerClone);
@@ -160,7 +162,7 @@ export async function exportAsImage(includeCharacterName = false) {
         // Clone and style table
         const table = resultsSection.querySelector('table');
         if (!table) {
-            alert('테이블을 찾을 수 없습니다.');
+            alert(MESSAGES.EXPORT.TABLE_NOT_FOUND);
             return;
         }
 
@@ -200,6 +202,6 @@ export async function exportAsImage(includeCharacterName = false) {
         if (tempContainer && tempContainer.parentNode) {
             tempContainer.parentNode.removeChild(tempContainer);
         }
-        alert('이미지 저장 중 오류가 발생했습니다.');
+        alert(MESSAGES.EXPORT.SAVE_ERROR);
     }
 }

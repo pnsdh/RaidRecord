@@ -2,6 +2,8 @@
  * FFLogs API - Report and encounter queries
  */
 
+import { buildReportQueryField, buildReportQueryVariables } from './queryBuilder.js';
+
 /**
  * Report and party member methods
  */
@@ -38,39 +40,17 @@ export class ReportsAPI {
 
         // Build query with aliases for each report
         let queryFields = '';
+        let variableDefinitions = '';
         const variables = {};
 
         validReports.forEach((rf, index) => {
-            const alias = `report${index}`;
-            variables[`reportCode${index}`] = rf.reportCode;
+            // Build query field
+            queryFields += buildReportQueryField(rf, index);
 
-            queryFields += `
-                ${alias}: report(code: $reportCode${index}) {
-                    code
-                    startTime
-                    fights {
-                        id
-                        startTime
-                        endTime
-                        friendlyPlayers
-                    }
-                    masterData {
-                        actors(type: "Player") {
-                            id
-                            name
-                            server
-                            subType
-                        }
-                    }
-                }
-            `;
-        });
-
-        // Build variable definitions
-        let variableDefinitions = '';
-        validReports.forEach((_, index) => {
-            if (index > 0) variableDefinitions += ', ';
-            variableDefinitions += `$reportCode${index}: String!`;
+            // Build variables
+            const { definitions, values } = buildReportQueryVariables(rf, index);
+            variableDefinitions += (index > 0 ? ', ' : '') + definitions;
+            Object.assign(variables, values);
         });
 
         const queryString = `
