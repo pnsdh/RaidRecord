@@ -3,56 +3,6 @@
  */
 
 /**
- * Build aliased batch query with dynamic variable definitions
- * @param {Object} config - Query configuration
- * @param {Array} config.items - Items to build queries for
- * @param {Function} config.buildField - Function(item, index, alias) that returns query field string
- * @param {Function} config.buildVariables - Function(item, index) that returns { definitions: string, values: object }
- * @param {string} config.wrapperPath - Path to wrap query fields (e.g., 'characterData', 'reportData')
- * @param {Object} config.baseVariables - Base variables to include (e.g., { characterId: 123 })
- * @param {string} config.baseDefinitions - Base variable definitions (e.g., '$characterId: Int!')
- * @returns {Object} { queryString, variables }
- */
-export function buildBatchQuery(config) {
-    const {
-        items,
-        buildField,
-        buildVariables,
-        wrapperPath,
-        baseVariables = {},
-        baseDefinitions = ''
-    } = config;
-
-    let queryFields = '';
-    let variableDefinitions = baseDefinitions;
-    const variables = { ...baseVariables };
-
-    items.forEach((item, index) => {
-        const alias = `item${index}`;
-
-        // Build field for this item
-        queryFields += buildField(item, index, alias);
-
-        // Build variables for this item
-        const { definitions, values } = buildVariables(item, index);
-        if (definitions) {
-            variableDefinitions += variableDefinitions ? `, ${definitions}` : definitions;
-        }
-        Object.assign(variables, values);
-    });
-
-    const queryString = `
-        query(${variableDefinitions}) {
-            ${wrapperPath} {
-                ${queryFields}
-            }
-        }
-    `;
-
-    return { queryString, variables };
-}
-
-/**
  * Build tier data query field
  * @param {number} index - Tier index
  * @returns {string} Query field string
