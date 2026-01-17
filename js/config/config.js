@@ -27,12 +27,6 @@ export const API_CONFIG = {
     GRANT_TYPE: 'client_credentials'
 };
 
-// Raid tier difficulty constants
-export const DIFFICULTY = {
-    ULTIMATE: 100,  // 절 (Ultimate)
-    SAVAGE: 101     // 영식 (Savage)
-};
-
 // Rate limiting and timing configuration
 export const TIMING = {
     TOKEN_REFRESH_THRESHOLD: 60 * 60 * 1000, // 1 hour before expiry

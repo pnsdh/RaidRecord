@@ -134,14 +134,3 @@ function findMatchingServer(input, allServerNames) {
 function escapeRegex(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
-
-/**
- * Get server name in display format (Korean)
- *
- * @param {string} serverNameEN - English server name
- * @returns {string} Korean server name
- */
-export function getServerDisplayName(serverNameEN) {
-    const server = KR_SERVERS.find(s => s.nameEN.toLowerCase() === serverNameEN.toLowerCase());
-    return server ? server.nameKR : serverNameEN;
-}

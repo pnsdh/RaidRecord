@@ -7,8 +7,8 @@ import { getServerNameKR, getJobOrder, JOB_COLORS, JOB_NAMES_KR } from '../../co
 import { formatJobBadge, getPercentileColor, formatNumber } from '../formatters.js';
 import { DAY_NAMES } from '../../config/time.js';
 
-// Common table styles
-export const TABLE_STYLES = {
+// Common table styles (internal use only)
+const TABLE_STYLES = {
     table: 'width: 100%; border-collapse: collapse;',
     headerCell: 'padding: 4px 8px 4px 0; text-align: center; border-bottom: 1px solid var(--border-color);',
     headerCellMiddle: 'padding: 4px 8px; text-align: center; border-bottom: 1px solid var(--border-color);',

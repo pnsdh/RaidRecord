@@ -31,8 +31,8 @@ export class App {
         this.serverSelector = new ServerSelector(this.ui);
 
         // Initialize modals
-        this.settingsModal = new SettingsModal(this);
-        this.raidSelectionModal = new RaidSelectionModal(this);
+        this.settingsModal = new SettingsModal();
+        this.raidSelectionModal = new RaidSelectionModal();
 
         // Attach event listeners
         attachEventListeners(this, this.elements, {

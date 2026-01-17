@@ -4,7 +4,7 @@
  */
 
 // Re-export from config/config.js
-export { APP_CONFIG, STORAGE_KEYS, API_CONFIG, DIFFICULTY, TIMING, UI_CONFIG } from './config/config.js';
+export { APP_CONFIG, STORAGE_KEYS, API_CONFIG, TIMING, UI_CONFIG } from './config/config.js';
 
 // Re-export from config/servers.js
 export { KR_SERVERS, getServerNameKR } from './config/servers.js';

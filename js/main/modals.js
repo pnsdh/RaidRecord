@@ -67,9 +67,8 @@ class BaseModal {
  * Settings modal functionality
  */
 export class SettingsModal extends BaseModal {
-    constructor(app) {
+    constructor() {
         super('settingsModal', 'closeSettingsModal');
-        this.app = app;
         this.clientIdInput = document.getElementById('clientId');
         this.clientSecretInput = document.getElementById('clientSecret');
     }
@@ -89,9 +88,8 @@ export class SettingsModal extends BaseModal {
  * Raid selection modal functionality
  */
 export class RaidSelectionModal extends BaseModal {
-    constructor(app) {
+    constructor() {
         super('raidSelectModal', 'closeRaidSelectModal');
-        this.app = app;
         this.raidSelectionList = document.getElementById('raidSelectionList');
     }
 

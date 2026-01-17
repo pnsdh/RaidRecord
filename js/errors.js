@@ -50,11 +50,3 @@ export function isCharacterNotFoundError(error) {
            error.message?.includes('캐릭터를 찾을 수 없습니다');
 }
 
-/**
- * Check if an error is a "no raid records" error
- * @param {Error} error - The error to check
- * @returns {boolean}
- */
-export function isNoRaidRecordsError(error) {
-    return isErrorCode(error, ErrorCodes.NO_RAID_RECORDS);
-}
