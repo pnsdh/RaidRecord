@@ -139,6 +139,7 @@ export class CharacterAPI {
 
     /**
      * Search for a character by name and server
+     * @returns {number|null} Character ID or null if not found
      */
     async searchCharacter(characterName, serverName, serverRegion) {
         const queryString = `
@@ -146,13 +147,6 @@ export class CharacterAPI {
                 characterData {
                     character(name: $name, serverSlug: $server, serverRegion: $region) {
                         id
-                        name
-                        server {
-                            name
-                            region {
-                                slug
-                            }
-                        }
                     }
                 }
             }
@@ -164,11 +158,7 @@ export class CharacterAPI {
             region: serverRegion
         }, true);
 
-        if (!data?.characterData?.character) {
-            return null;
-        }
-
-        return data.characterData.character;
+        return data?.characterData?.character?.id || null;
     }
 
     /**

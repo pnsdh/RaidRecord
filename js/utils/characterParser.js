@@ -14,6 +14,17 @@ import { KR_SERVERS } from '../config/servers.js';
 const VALID_CHAR_PATTERN = /^[가-힣a-zA-Z']+$/;
 
 /**
+ * Format FFXIV character name (first letter uppercase, rest lowercase for each word)
+ * Only applies to English characters; Korean names are unchanged
+ * e.g., "JOHN DOE" -> "John Doe", "john doe" -> "John Doe"
+ */
+function formatCharacterName(name) {
+    return name.split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+}
+
+/**
  * Parse character input to extract name and server
  * Supports formats like:
  * - "name@server"
@@ -58,7 +69,7 @@ export function parseCharacterInput(input) {
         const matchedServer = findMatchingServer(potentialServer, allServerNames);
         if (matchedServer) {
             return {
-                characterName: potentialName,
+                characterName: formatCharacterName(potentialName),
                 serverName: matchedServer
             };
         }
@@ -78,7 +89,7 @@ export function parseCharacterInput(input) {
             // Validate that character name contains only valid characters
             if (VALID_CHAR_PATTERN.test(potentialName)) {
                 return {
-                    characterName: potentialName,
+                    characterName: formatCharacterName(potentialName),
                     serverName: findMatchingServer(matchedServer, allServerNames)
                 };
             }
@@ -92,7 +103,7 @@ export function parseCharacterInput(input) {
     }
 
     return {
-        characterName: trimmed,
+        characterName: formatCharacterName(trimmed),
         serverName: null
     };
 }

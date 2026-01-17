@@ -106,7 +106,6 @@ export function buildReportQueryField(reportFight, index) {
     const alias = `report${index}`;
     return `
         ${alias}: report(code: $reportCode${index}) {
-            code
             startTime
             fights {
                 id

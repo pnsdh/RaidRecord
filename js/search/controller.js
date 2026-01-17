@@ -3,7 +3,7 @@
  */
 
 import { getSelectedRaidTiers } from '../constants.js';
-import { searchCharacter as searchCharacterUtil } from './input.js';
+import { searchCharacterId } from './input.js';
 import { processTierData } from './tiers.js';
 import { AppError, ErrorCodes } from '../errors.js';
 
@@ -59,10 +59,12 @@ export class RaidHistorySearch {
     }
 
     /**
-     * Search for character and get their raid history
+     * Search for character ID
+     * @param {string} searchInput - Search input
+     * @returns {Promise<number>} Character ID
      */
-    async searchCharacter(searchInput) {
-        return searchCharacterUtil(this.api, searchInput, this.region);
+    async searchCharacterId(searchInput) {
+        return searchCharacterId(this.api, searchInput, this.region);
     }
 
     /**
@@ -75,8 +77,9 @@ export class RaidHistorySearch {
 
     /**
      * Get all raid tier clear data for a character
+     * @param {number} characterId - Character ID
      */
-    async getRaidHistory(character) {
+    async getRaidHistory(characterId) {
         const tiers = getSelectedRaidTiers();
 
         // Check if cancelled before starting
@@ -95,7 +98,7 @@ export class RaidHistorySearch {
             }
 
             // Get all tier data in a single batch query
-            const batchResults = await this.api.getBatchTierData(character.id, tiers);
+            const batchResults = await this.api.getBatchTierData(characterId, tiers);
 
             // Update API usage after batch query
             if (this.apiUsageCallback) {

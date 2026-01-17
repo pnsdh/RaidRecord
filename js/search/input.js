@@ -4,37 +4,29 @@
 
 import { getServerNameKR } from '../constants.js';
 import { AppError, ErrorCodes } from '../errors.js';
+import { parseCharacterInput } from '../utils/characterParser.js';
 
 /**
- * Parse character search input
- * Expected format: "CharacterName ServerName"
+ * Search for character ID
+ * @param {Object} api - API instance
+ * @param {string} searchInput - Search input in format "CharacterName ServerName"
+ * @param {string} region - Server region
+ * @returns {Promise<number>} Character ID
  */
-function parseSearchInput(input) {
-    const parts = input.trim().split(/\s+/);
+export async function searchCharacterId(api, searchInput, region) {
+    const { characterName, serverName } = parseCharacterInput(searchInput);
 
-    if (parts.length < 2) {
-        throw new Error('검색 형식: 캐릭터명 (예: 빛의영자하나)');
+    if (!characterName || !serverName) {
+        throw new Error('검색 형식: 캐릭터명 서버명 (예: 빛의영자 카벙클)');
     }
 
-    const characterName = parts.slice(0, -1).join(' ');
-    const serverName = parts[parts.length - 1];
+    // Search for the character ID
+    const characterId = await api.searchCharacter(characterName, serverName, region);
 
-    return { characterName, serverName };
-}
-
-/**
- * Search for character
- */
-export async function searchCharacter(api, searchInput, region) {
-    const { characterName, serverName } = parseSearchInput(searchInput);
-
-    // Search for the character
-    const character = await api.searchCharacter(characterName, serverName, region);
-
-    if (!character) {
+    if (!characterId) {
         const serverNameKR = getServerNameKR(serverName);
         throw new AppError(`캐릭터를 찾을 수 없습니다: ${characterName} @ ${serverNameKR}`, ErrorCodes.CHARACTER_NOT_FOUND);
     }
 
-    return character;
+    return characterId;
 }

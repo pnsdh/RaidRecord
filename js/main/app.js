@@ -130,8 +130,8 @@ export class App {
         // Build search query with server
         const searchQuery = `${characterName} ${serverName}`;
 
-        // Search for character
-        const character = await this.search.searchCharacter(searchQuery);
+        // Search for character ID
+        const characterId = await this.search.searchCharacterId(searchQuery);
 
         // Update API usage after first query
         this.updateApiUsage();
@@ -163,7 +163,14 @@ export class App {
 
         // Get raid history
         this.ui.showLoading('레이드 이력 검색 중...');
-        const raidHistory = await this.search.getRaidHistory(character);
+        const raidHistory = await this.search.getRaidHistory(characterId);
+
+        // Build character object for rendering
+        const character = {
+            id: characterId,
+            name: characterName,
+            server: { name: serverName }
+        };
 
         return { character, raidHistory };
     }
