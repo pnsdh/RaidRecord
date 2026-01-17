@@ -45,7 +45,7 @@ export class ReportsAPI {
 
         validReports.forEach((rf, index) => {
             // Build query field
-            queryFields += buildReportQueryField(rf, index);
+            queryFields += buildReportQueryField(index);
 
             // Build variables
             const { definitions, values } = buildReportQueryVariables(rf, index);

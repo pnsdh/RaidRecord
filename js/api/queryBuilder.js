@@ -54,11 +54,10 @@ export function buildBatchQuery(config) {
 
 /**
  * Build tier data query field
- * @param {Object} tier - Tier configuration
  * @param {number} index - Tier index
  * @returns {string} Query field string
  */
-export function buildTierQueryField(tier, index) {
+export function buildTierQueryField(index) {
     const alias = `tier${index}`;
     return `
         ${alias}: character(id: $characterId) {
@@ -98,11 +97,10 @@ export function buildTierQueryVariables(tier, index) {
 
 /**
  * Build report query field
- * @param {Object} reportFight - Report fight info
  * @param {number} index - Report index
  * @returns {string} Query field string
  */
-export function buildReportQueryField(reportFight, index) {
+export function buildReportQueryField(index) {
     const alias = `report${index}`;
     return `
         ${alias}: report(code: $reportCode${index}) {

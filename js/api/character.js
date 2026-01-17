@@ -172,7 +172,7 @@ export class CharacterAPI {
 
         tiers.forEach((tier, index) => {
             // Build query field
-            queryFields += buildTierQueryField(tier, index);
+            queryFields += buildTierQueryField(index);
 
             // Build variables
             const { definitions, values } = buildTierQueryVariables(tier, index);
