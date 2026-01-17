@@ -260,34 +260,44 @@ function createEmptyDataRow(floorName) {
 }
 
 /**
- * Create encounter all-star scores tooltip HTML (올스타 셀용)
+ * Calculate percentile from rank and total
  */
-export function createEncounterScoresHTML(encounterAllStars, tier) {
+function calculatePercentile(rank, total) {
+    if (!rank || !total) return 0;
+    return ((total - rank + 1) / total) * 100;
+}
+
+/**
+ * Create encounter table HTML with custom row renderer
+ * @param {Array} encounterAllStars - Encounter data
+ * @param {Object} tier - Tier info
+ * @param {string} metricLabel - Column header label
+ * @param {Function} renderMetricCell - Function to render the metric cell content
+ */
+function createEncounterTableHTML(encounterAllStars, tier, metricLabel, renderMetricCell) {
     if (!tier) {
         return null;
     }
 
     const completeFloorData = buildCompleteFloorData(encounterAllStars || [], tier);
-
-    // Check if all floors have no data
     const hasAnyData = completeFloorData.some(floor => floor.data !== null);
     if (!hasAnyData) {
         return null;
     }
 
-    let html = createEncounterTableHeader('점수');
+    let html = createEncounterTableHeader(metricLabel);
 
     completeFloorData.forEach(floor => {
         if (!floor.data) {
             html += createEmptyDataRow(floor.floorName);
         } else {
-            const points = floor.data.points ? floor.data.points.toFixed(2) : '0.00';
             const { jobColor, jobName } = formatJobInfo(floor.data.job || 'Unknown');
+            const metricContent = renderMetricCell(floor.data);
 
             html += `
                 <tr>
                     <td style="${TABLE_STYLES.dataCell}">${floor.floorName}</td>
-                    <td style="${TABLE_STYLES.dataCellMiddle} color: #d1fa99;">${points}</td>
+                    <td style="${TABLE_STYLES.dataCellMiddle}">${metricContent}</td>
                     <td style="${TABLE_STYLES.dataCellLast} color: ${jobColor}; font-weight: 500;">${jobName}</td>
                 </tr>
             `;
@@ -296,95 +306,38 @@ export function createEncounterScoresHTML(encounterAllStars, tier) {
 
     html += '</tbody></table>';
     return html;
+}
+
+/**
+ * Create encounter all-star scores tooltip HTML (올스타 셀용)
+ */
+export function createEncounterScoresHTML(encounterAllStars, tier) {
+    return createEncounterTableHTML(encounterAllStars, tier, '점수', (data) => {
+        const points = data.points ? data.points.toFixed(2) : '0.00';
+        return `<span style="color: #d1fa99;">${points}</span>`;
+    });
 }
 
 /**
  * Create encounter percentiles tooltip HTML (백분위 셀용)
  */
 export function createEncounterPercentilesHTML(encounterAllStars, tier) {
-    if (!tier) {
-        return null;
-    }
-
-    const completeFloorData = buildCompleteFloorData(encounterAllStars || [], tier);
-
-    // Check if all floors have no data
-    const hasAnyData = completeFloorData.some(floor => floor.data !== null);
-    if (!hasAnyData) {
-        return null;
-    }
-
-    let html = createEncounterTableHeader('백분위');
-
-    completeFloorData.forEach(floor => {
-        if (!floor.data) {
-            html += createEmptyDataRow(floor.floorName);
-        } else {
-            const encounter = floor.data;
-            const percentile = (encounter.rank && encounter.total)
-                ? (((encounter.total - encounter.rank + 1) / encounter.total) * 100).toFixed(2)
-                : '0.00';
-            const percentileColor = getPercentileColor(parseFloat(percentile));
-            const { jobColor, jobName } = formatJobInfo(encounter.job || 'Unknown');
-
-            html += `
-                <tr>
-                    <td style="${TABLE_STYLES.dataCell}">${floor.floorName}</td>
-                    <td style="${TABLE_STYLES.dataCellMiddle} color: ${percentileColor};">${percentile}%</td>
-                    <td style="${TABLE_STYLES.dataCellLast} color: ${jobColor}; font-weight: 500;">${jobName}</td>
-                </tr>
-            `;
-        }
+    return createEncounterTableHTML(encounterAllStars, tier, '백분위', (data) => {
+        const percentile = calculatePercentile(data.rank, data.total).toFixed(2);
+        const color = getPercentileColor(parseFloat(percentile));
+        return `<span style="color: ${color};">${percentile}%</span>`;
     });
-
-    html += '</tbody></table>';
-    return html;
 }
 
 /**
  * Create encounter ranks tooltip HTML (순위 셀용)
  */
 export function createEncounterRanksHTML(encounterAllStars, tier) {
-    if (!tier) {
-        return null;
-    }
-
-    const completeFloorData = buildCompleteFloorData(encounterAllStars || [], tier);
-
-    // Check if all floors have no data
-    const hasAnyData = completeFloorData.some(floor => floor.data !== null);
-    if (!hasAnyData) {
-        return null;
-    }
-
-    let html = createEncounterTableHeader('순위');
-
-    completeFloorData.forEach(floor => {
-        if (!floor.data) {
-            html += createEmptyDataRow(floor.floorName);
-        } else {
-            const encounter = floor.data;
-            const percentile = (encounter.rank && encounter.total)
-                ? ((encounter.total - encounter.rank + 1) / encounter.total) * 100
-                : 0;
-            const percentileColor = getPercentileColor(percentile);
-            const rank = encounter.rank ? formatNumber(encounter.rank) : '-';
-            const total = encounter.total ? formatNumber(encounter.total) : '-';
-            const { jobColor, jobName } = formatJobInfo(encounter.job || 'Unknown');
-
-            html += `
-                <tr>
-                    <td style="${TABLE_STYLES.dataCell}">${floor.floorName}</td>
-                    <td style="${TABLE_STYLES.dataCellMiddle}">
-                        <span style="color: ${percentileColor};">#${rank}</span>
-                        <span style="color: var(--text-secondary);"> / ${total}</span>
-                    </td>
-                    <td style="${TABLE_STYLES.dataCellLast} color: ${jobColor}; font-weight: 500;">${jobName}</td>
-                </tr>
-            `;
-        }
+    return createEncounterTableHTML(encounterAllStars, tier, '순위', (data) => {
+        const percentile = calculatePercentile(data.rank, data.total);
+        const color = getPercentileColor(percentile);
+        const rank = data.rank ? formatNumber(data.rank) : '-';
+        const total = data.total ? formatNumber(data.total) : '-';
+        return `<span style="color: ${color};">#${rank}</span><span style="color: var(--text-secondary);"> / ${total}</span>`;
     });
-
-    html += '</tbody></table>';
-    return html;
 }
