@@ -96,6 +96,7 @@ export class UIController {
         this.loadingSection.style.display = 'none';
         this.resultsSection.style.display = 'none';
         this.errorSection.style.display = 'none';
+        this.serverSelectSection.style.display = 'none';
     }
 
     /**

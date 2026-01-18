@@ -346,6 +346,15 @@ export class App {
      */
     async handleCharacterNotFound(characterName, serverName, searchInput) {
         const serverExistsMap = await this.checkCharacterOnServers(characterName, serverName);
+
+        // Check if character exists on any other server
+        const existsOnOtherServer = Object.values(serverExistsMap).some(id => id);
+        if (!existsOnOtherServer) {
+            this.ui.showError(MESSAGES.SEARCH.NOT_FOUND_ON_ANY_SERVER(characterName));
+            this.elements.searchInput.value = '';
+            return true;
+        }
+
         return this.showServerSelectionDialog(characterName, searchInput, 'notFound', serverName, serverExistsMap);
     }
 
