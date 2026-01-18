@@ -12,7 +12,9 @@ export const MESSAGES = {
         SELECT_OTHER_SERVER: (name, server) => `<strong>${name}@${server}</strong> 캐릭터를 찾을 수 없습니다.<br>다른 서버를 선택해주세요.`,
         NO_RAID_RECORDS: (name, server) => `<strong>${name}@${server}</strong> 캐릭터의 레이드 기록을 찾을 수 없습니다.<br>다른 서버를 선택해주세요.`,
         SEARCH_ERROR: '검색 중 오류가 발생했습니다.',
-        SEARCH_CANCELLED: '검색이 취소되었습니다.'
+        SEARCH_CANCELLED: '검색이 취소되었습니다.',
+        SEARCHING_CHARACTER: '캐릭터 검색 중...',
+        SEARCHING_RAID_HISTORY: '레이드 이력 검색 중...'
     },
 
     // Settings related

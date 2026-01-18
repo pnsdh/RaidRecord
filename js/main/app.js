@@ -121,7 +121,7 @@ export class App {
         this.elements.searchInput.placeholder = searchInput;
 
         // Show loading
-        this.ui.showLoading('캐릭터 검색 중...');
+        this.ui.showLoading(MESSAGES.SEARCH.SEARCHING_CHARACTER);
 
         // Build search query with server
         const searchQuery = `${characterName} ${serverName}`;
@@ -158,7 +158,7 @@ export class App {
         });
 
         // Get raid history
-        this.ui.showLoading('레이드 이력 검색 중...');
+        this.ui.showLoading(MESSAGES.SEARCH.SEARCHING_RAID_HISTORY);
         const raidHistory = await this.search.getRaidHistory(characterId);
 
         // Build character object for rendering
@@ -235,13 +235,7 @@ export class App {
         }
 
         // Otherwise show server selection
-        this.serverSelector.showInitialSelection(
-            characterName,
-            (chosenServer) => {
-                this.searchWithServer(characterName, chosenServer, originalInput);
-            },
-            serverExistsMap
-        );
+        this.showServerSelectionDialog(characterName, originalInput, 'initial', null, serverExistsMap);
     }
 
     /**
@@ -252,76 +246,27 @@ export class App {
      */
     async searchWithServer(characterName, serverName, searchInput) {
         try {
-            // Set searching state
-            this.isSearching = true;
-            this.search.resetCancel();
-            this.updateSearchButton();
-            this.ui.disableControls();
-            this.serverSelector.hide();
+            this.startSearchSession();
 
-            // Perform search
             const { character, raidHistory } = await this.performSearch(characterName, serverName, searchInput);
+            const sortedHistory = this.displaySearchResults(character, raidHistory);
 
-            // Sort by newest first
-            const sortedHistory = sortRaidHistory(raidHistory);
-
-            // Check if we got any results
+            // If no results, offer to search other servers
             if (sortedHistory.length === 0) {
-                // No results found, check other servers for character existence
-                const serverExistsMap = await this.checkCharacterOnServers(characterName, serverName);
-
-                // Show server selection for other servers
-                const hasOtherServers = this.serverSelector.showNoRecordsSelection(
-                    characterName,
-                    serverName,
-                    (chosenServer) => {
-                        this.searchWithServer(characterName, chosenServer, searchInput);
-                    },
-                    serverExistsMap
-                );
-                if (hasOtherServers) {
+                if (await this.handleEmptyResults(characterName, serverName, searchInput)) {
                     return;
                 }
             }
-
-            // Render results
-            this.ui.renderResults(character, sortedHistory);
-
-            // Clear search input (placeholder still shows last search)
-            this.elements.searchInput.value = '';
-
-            // Update API usage after all queries
-            this.updateApiUsage();
-
         } catch (error) {
-            // Check if it's a "character not found" error
             if (isCharacterNotFoundError(error)) {
-                // Check other servers for character existence
-                const serverExistsMap = await this.checkCharacterOnServers(characterName, serverName);
-
-                // Show server selection for other servers
-                const hasOtherServers = this.serverSelector.showNotFoundSelection(
-                    characterName,
-                    serverName,
-                    (chosenServer) => {
-                        this.searchWithServer(characterName, chosenServer, searchInput);
-                    },
-                    serverExistsMap
-                );
-                if (hasOtherServers) {
+                if (await this.handleCharacterNotFound(characterName, serverName, searchInput)) {
                     return;
                 }
             }
-
             this.ui.showError(error.message || MESSAGES.SEARCH.SEARCH_ERROR);
-
-            // Still try to update API usage on error
             this.updateApiUsage();
         } finally {
-            // Reset searching state
-            this.isSearching = false;
-            this.updateSearchButton();
-            this.ui.enableControls();
+            this.endSearchSession();
         }
     }
 
@@ -361,6 +306,86 @@ export class App {
     cancelSearch() {
         if (this.search) {
             this.search.cancel();
+        }
+    }
+
+    /**
+     * Start search session - set searching state and update UI
+     */
+    startSearchSession() {
+        this.isSearching = true;
+        this.search.resetCancel();
+        this.updateSearchButton();
+        this.ui.disableControls();
+        this.serverSelector.hide();
+    }
+
+    /**
+     * End search session - reset searching state and update UI
+     */
+    endSearchSession() {
+        this.isSearching = false;
+        this.updateSearchButton();
+        this.ui.enableControls();
+    }
+
+    /**
+     * Handle empty search results - check other servers
+     * @returns {boolean} Whether alternative servers were shown
+     */
+    async handleEmptyResults(characterName, serverName, searchInput) {
+        const serverExistsMap = await this.checkCharacterOnServers(characterName, serverName);
+        return this.showServerSelectionDialog(characterName, searchInput, 'noRecords', serverName, serverExistsMap);
+    }
+
+    /**
+     * Handle character not found error - check other servers
+     * @returns {boolean} Whether alternative servers were shown
+     */
+    async handleCharacterNotFound(characterName, serverName, searchInput) {
+        const serverExistsMap = await this.checkCharacterOnServers(characterName, serverName);
+        return this.showServerSelectionDialog(characterName, searchInput, 'notFound', serverName, serverExistsMap);
+    }
+
+    /**
+     * Display search results and clear input
+     */
+    displaySearchResults(character, raidHistory) {
+        const sortedHistory = sortRaidHistory(raidHistory);
+        this.ui.renderResults(character, sortedHistory);
+        this.elements.searchInput.value = '';
+        this.updateApiUsage();
+        return sortedHistory;
+    }
+
+    /**
+     * Show server selection dialog with unified callback
+     * @param {string} characterName - Character name
+     * @param {string} searchInput - Original search input
+     * @param {'initial'|'noRecords'|'notFound'} type - Selection type
+     * @param {string|null} failedServer - Server that failed (for noRecords/notFound)
+     * @param {Object} serverExistsMap - Map of server -> characterId
+     * @returns {boolean} Whether dialog was shown
+     */
+    showServerSelectionDialog(characterName, searchInput, type, failedServer, serverExistsMap) {
+        const callback = (chosenServer) => {
+            this.searchWithServer(characterName, chosenServer, searchInput);
+        };
+
+        switch (type) {
+            case 'initial':
+                this.serverSelector.showInitialSelection(characterName, callback, serverExistsMap);
+                return true;
+            case 'noRecords':
+                return this.serverSelector.showNoRecordsSelection(
+                    characterName, failedServer, callback, serverExistsMap
+                );
+            case 'notFound':
+                return this.serverSelector.showNotFoundSelection(
+                    characterName, failedServer, callback, serverExistsMap
+                );
+            default:
+                return false;
         }
     }
 
