@@ -139,12 +139,7 @@ export class App {
         if (!this.api.hasEnoughPoints(requiredPoints)) {
             const remainingPoints = this.api.getRemainingPoints();
             const resetMinutes = Math.ceil((this.api.getRateLimitInfo()?.pointsResetIn || 3600) / 60);
-            throw new Error(
-                `API 포인트가 부족합니다.\n` +
-                `필요: 약 ${requiredPoints} 포인트\n` +
-                `남은 포인트: ${remainingPoints} 포인트\n` +
-                `${resetMinutes}분 후 리셋됩니다. 잠시 후 다시 시도해주세요.`
-            );
+            throw new Error(MESSAGES.API.INSUFFICIENT_POINTS(requiredPoints, remainingPoints, resetMinutes));
         }
 
         // Set progress callback
@@ -226,6 +221,13 @@ export class App {
         const existingServers = Object.entries(serverExistsMap)
             .filter(([, id]) => id)
             .map(([server]) => server);
+
+        // If character not found on any server, show error message and clear input
+        if (existingServers.length === 0) {
+            this.ui.showError(MESSAGES.SEARCH.NOT_FOUND_ON_ANY_SERVER(characterName));
+            this.elements.searchInput.value = '';
+            return;
+        }
 
         // If character exists on exactly one server, search directly
         if (existingServers.length === 1) {

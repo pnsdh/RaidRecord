@@ -6,6 +6,7 @@ import { getServerNameKR, JOB_COLORS } from '../constants.js';
 import { attachTooltipListeners } from './tooltips.js';
 import { formatJobText, formatWeekBadge, formatAllStarScore, formatTierBadge, formatNumber } from './formatters.js';
 import { calculateApiUsage } from '../utils/apiUsage.js';
+import { MESSAGES } from '../config/messages.js';
 
 /**
  * UI Controller for rendering raid history
@@ -288,7 +289,7 @@ export class UIController {
         this.apiUsageValue.className = `usage-value usage-${usage.usageLevel}`;
 
         // Update reset time
-        this.apiUsageReset.textContent = `(${usage.resetMinutes}분 후 리셋)`;
+        this.apiUsageReset.textContent = MESSAGES.API.RESET_TIME(usage.resetMinutes);
 
         // Show section
         this.apiUsageSection.style.display = 'block';
@@ -313,9 +314,7 @@ export class UIController {
         if (message) {
             this.serverSelectMessage.innerHTML = message;
         } else {
-            this.serverSelectMessage.innerHTML = `
-                <strong>${characterName}</strong> 캐릭터를 검색할 서버를 선택해주세요.
-            `;
+            this.serverSelectMessage.innerHTML = MESSAGES.SEARCH.SELECT_SERVER(characterName);
         }
 
         // Clear previous buttons

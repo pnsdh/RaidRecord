@@ -3,6 +3,7 @@
  */
 
 import { KR_SERVERS } from '../constants.js';
+import { MESSAGES } from '../config/messages.js';
 
 /**
  * Server selector class for managing server selection UI
@@ -41,7 +42,7 @@ export class ServerSelector {
      */
     showInitialSelection(characterName, onSelect, serverExistsMap = null) {
         const servers = this.getAllServers();
-        const message = `<strong>${characterName}</strong> 캐릭터를 검색할 서버를 선택해주세요.`;
+        const message = MESSAGES.SEARCH.SELECT_SERVER(characterName);
         this.ui.showServerSelection(characterName, servers, onSelect, message, null, serverExistsMap);
     }
 
@@ -55,7 +56,7 @@ export class ServerSelector {
     showNotFoundSelection(characterName, failedServer, onSelect, serverExistsMap = null) {
         const servers = this.getAllServers();
         const serverDisplayName = this.getDisplayName(failedServer);
-        const message = `<strong>${characterName}@${serverDisplayName}</strong> 캐릭터를 찾을 수 없습니다.<br>다른 서버를 선택해주세요.`;
+        const message = MESSAGES.SEARCH.SELECT_OTHER_SERVER(characterName, serverDisplayName);
         this.ui.showServerSelection(characterName, servers, onSelect, message, failedServer, serverExistsMap);
         return true;
     }
@@ -70,7 +71,7 @@ export class ServerSelector {
     showNoRecordsSelection(characterName, currentServer, onSelect, serverExistsMap = null) {
         const servers = this.getAllServers();
         const serverDisplayName = this.getDisplayName(currentServer);
-        const message = `<strong>${characterName}@${serverDisplayName}</strong> 캐릭터의 레이드 기록을 찾을 수 없습니다.<br>다른 서버를 선택해주세요.`;
+        const message = MESSAGES.SEARCH.NO_RAID_RECORDS(characterName, serverDisplayName);
         this.ui.showServerSelection(characterName, servers, onSelect, message, currentServer, serverExistsMap);
         return true;
     }

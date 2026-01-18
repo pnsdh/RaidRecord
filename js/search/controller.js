@@ -6,6 +6,7 @@ import { getSelectedRaidTiers } from '../constants.js';
 import { searchCharacterId } from './input.js';
 import { processTierData } from './tiers.js';
 import { AppError, ErrorCodes } from '../errors.js';
+import { MESSAGES } from '../config/messages.js';
 
 /**
  * Sort raid history by release date (newest first)
@@ -84,7 +85,7 @@ export class RaidHistorySearch {
 
         // Check if cancelled before starting
         if (this.cancelled) {
-            throw new AppError('검색이 취소되었습니다.', ErrorCodes.SEARCH_CANCELLED);
+            throw new AppError(MESSAGES.SEARCH.SEARCH_CANCELLED, ErrorCodes.SEARCH_CANCELLED);
         }
 
         try {
@@ -93,7 +94,7 @@ export class RaidHistorySearch {
                 this.progressCallback({
                     current: 1,
                     total: 2,
-                    message: '레이드 클리어 기록 조회 중'
+                    message: MESSAGES.SEARCH.FETCHING_RAID_DATA
                 });
             }
 
@@ -122,7 +123,7 @@ export class RaidHistorySearch {
                 this.progressCallback({
                     current: 2,
                     total: 2,
-                    message: '파티 멤버 정보 조회 중'
+                    message: MESSAGES.SEARCH.FETCHING_PARTY_MEMBERS
                 });
             }
 
@@ -139,7 +140,7 @@ export class RaidHistorySearch {
             for (let i = 0; i < tiers.length; i++) {
                 // Check if cancelled during processing
                 if (this.cancelled) {
-                    throw new AppError('검색이 취소되었습니다.', ErrorCodes.SEARCH_CANCELLED);
+                    throw new AppError(MESSAGES.SEARCH.SEARCH_CANCELLED, ErrorCodes.SEARCH_CANCELLED);
                 }
 
                 const tier = tiers[i];
