@@ -4,13 +4,18 @@
 
 import { API_CONFIG, TIMING } from '../config/config.js';
 import { getJobFromSpecId as mapJobFromSpecId } from '../config/jobs.js';
-import { TokenStorage } from './tokenStorage.js';
 import { AppError, ErrorCodes } from '../errors.js';
 
 export class FFLogsAPICore {
-    constructor(clientId, clientSecret) {
+    /**
+     * @param {string} clientId - FFLogs API client ID
+     * @param {string} clientSecret - FFLogs API client secret
+     * @param {Object} tokenStorage - Token storage interface with getToken, saveToken, getExpiry, saveExpiry
+     */
+    constructor(clientId, clientSecret, tokenStorage) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
+        this.tokenStorage = tokenStorage;
         this.accessToken = null;
         this.tokenExpiry = null;
         this.rateLimitData = null;
@@ -21,8 +26,8 @@ export class FFLogsAPICore {
      */
     async getAccessToken() {
         // Check if we have a valid cached token
-        const cachedToken = TokenStorage.getToken();
-        const cachedExpiry = TokenStorage.getExpiry();
+        const cachedToken = this.tokenStorage.getToken();
+        const cachedExpiry = this.tokenStorage.getExpiry();
 
         if (cachedToken && cachedExpiry) {
             const now = Date.now();
@@ -58,8 +63,8 @@ export class FFLogsAPICore {
         this.tokenExpiry = Date.now() + (data.expires_in * 1000);
 
         // Cache the token
-        TokenStorage.saveToken(this.accessToken);
-        TokenStorage.saveExpiry(this.tokenExpiry);
+        this.tokenStorage.saveToken(this.accessToken);
+        this.tokenStorage.saveExpiry(this.tokenExpiry);
 
         return this.accessToken;
     }

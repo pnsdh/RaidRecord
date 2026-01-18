@@ -11,8 +11,13 @@ import { ReportsAPI } from './api/reports.js';
  * Main FFLogs API class that combines all API functionality
  */
 export class FFLogsAPI extends FFLogsAPICore {
-    constructor(clientId, clientSecret) {
-        super(clientId, clientSecret);
+    /**
+     * @param {string} clientId - FFLogs API client ID
+     * @param {string} clientSecret - FFLogs API client secret
+     * @param {Object} tokenStorage - Token storage interface
+     */
+    constructor(clientId, clientSecret, tokenStorage) {
+        super(clientId, clientSecret, tokenStorage);
 
         // Initialize sub-APIs with reference to this instance (core)
         this.characterAPI = new CharacterAPI(this);

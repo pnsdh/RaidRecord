@@ -121,7 +121,50 @@ export class StorageService {
     static saveSelectedRaids(ids) {
         this.setJSON('SELECTED_RAIDS', ids);
     }
+
+    /**
+     * Get access token
+     * @returns {string|null}
+     */
+    static getAccessToken() {
+        return this.get('ACCESS_TOKEN');
+    }
+
+    /**
+     * Save access token
+     * @param {string} token
+     */
+    static saveAccessToken(token) {
+        this.set('ACCESS_TOKEN', token);
+    }
+
+    /**
+     * Get token expiry time
+     * @returns {number|null}
+     */
+    static getTokenExpiry() {
+        const expiry = this.get('TOKEN_EXPIRY');
+        return expiry ? parseInt(expiry, 10) : null;
+    }
+
+    /**
+     * Save token expiry time
+     * @param {number} expiry
+     */
+    static saveTokenExpiry(expiry) {
+        this.set('TOKEN_EXPIRY', expiry.toString());
+    }
 }
+
+/**
+ * Token storage interface for API (adapter for StorageService)
+ */
+const TokenStorage = {
+    getToken: () => StorageService.getAccessToken(),
+    saveToken: (token) => StorageService.saveAccessToken(token),
+    getExpiry: () => StorageService.getTokenExpiry(),
+    saveExpiry: (expiry) => StorageService.saveTokenExpiry(expiry)
+};
 
 /**
  * Create API client from stored credentials
@@ -135,7 +178,7 @@ export function createAPIFromCredentials(APIClass) {
         return null;
     }
 
-    return new APIClass(clientId, clientSecret);
+    return new APIClass(clientId, clientSecret, TokenStorage);
 }
 
 /**
