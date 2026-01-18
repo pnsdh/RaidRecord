@@ -280,6 +280,18 @@ header {
     transform: translateY(0);
 }
 
+.server-choice-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--bg-primary);
+}
+
+.server-choice-btn:disabled:hover {
+    border-color: var(--border-color);
+    background-color: var(--bg-primary);
+    transform: none;
+}
+
 /* Results Section */
 .results-section {
     display: none;

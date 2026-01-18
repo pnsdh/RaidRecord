@@ -14,17 +14,6 @@ export class ServerSelector {
     }
 
     /**
-     * Get list of servers excluding specified server
-     * @param {string} excludeServer - Server name to exclude (English)
-     * @returns {string[]} List of server names (English)
-     */
-    getOtherServers(excludeServer) {
-        return this.servers
-            .map(s => s.nameEN)
-            .filter(s => s.toLowerCase() !== excludeServer.toLowerCase());
-    }
-
-    /**
      * Get all server names
      * @returns {string[]} List of all server names (English)
      */
@@ -62,14 +51,10 @@ export class ServerSelector {
      * @param {Function} onSelect - Callback when server is selected
      */
     showNotFoundSelection(characterName, failedServer, onSelect) {
-        const otherServers = this.getOtherServers(failedServer);
-        if (otherServers.length === 0) {
-            return false;
-        }
-
+        const servers = this.getAllServers();
         const serverDisplayName = this.getDisplayName(failedServer);
         const message = `<strong>${characterName}@${serverDisplayName}</strong> 캐릭터를 찾을 수 없습니다.<br>다른 서버를 선택해주세요.`;
-        this.ui.showServerSelection(characterName, otherServers, onSelect, message);
+        this.ui.showServerSelection(characterName, servers, onSelect, message, failedServer);
         return true;
     }
 
@@ -80,14 +65,10 @@ export class ServerSelector {
      * @param {Function} onSelect - Callback when server is selected
      */
     showNoRecordsSelection(characterName, currentServer, onSelect) {
-        const otherServers = this.getOtherServers(currentServer);
-        if (otherServers.length === 0) {
-            return false;
-        }
-
+        const servers = this.getAllServers();
         const serverDisplayName = this.getDisplayName(currentServer);
         const message = `<strong>${characterName}@${serverDisplayName}</strong> 캐릭터의 레이드 기록을 찾을 수 없습니다.<br>다른 서버를 선택해주세요.`;
-        this.ui.showServerSelection(characterName, otherServers, onSelect, message);
+        this.ui.showServerSelection(characterName, servers, onSelect, message, currentServer);
         return true;
     }
 

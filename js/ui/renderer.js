@@ -301,8 +301,9 @@ export class UIController {
      * @param {string[]} servers - Array of server names (English) to show as options
      * @param {Function} onServerSelect - Callback function when server is selected
      * @param {string} message - Optional custom message to display
+     * @param {string} disabledServer - Optional server to show as disabled
      */
-    showServerSelection(characterName, servers, onServerSelect, message = null) {
+    showServerSelection(characterName, servers, onServerSelect, message = null, disabledServer = null) {
         // Hide other sections
         this.loadingSection.style.display = 'none';
         this.errorSection.style.display = 'none';
@@ -327,9 +328,17 @@ export class UIController {
             button.className = 'server-choice-btn';
             button.textContent = serverKR;
             button.setAttribute('data-server', serverEN);
-            button.addEventListener('click', () => {
-                onServerSelect(serverEN);
-            });
+
+            // Disable button if it's the failed server
+            const isDisabled = disabledServer && serverEN.toLowerCase() === disabledServer.toLowerCase();
+            if (isDisabled) {
+                button.disabled = true;
+            } else {
+                button.addEventListener('click', () => {
+                    onServerSelect(serverEN);
+                });
+            }
+
             this.serverButtons.appendChild(button);
         });
 
