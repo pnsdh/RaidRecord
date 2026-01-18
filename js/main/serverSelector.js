@@ -37,11 +37,12 @@ export class ServerSelector {
      * Show server selection UI for initial search (no server specified)
      * @param {string} characterName - Character name
      * @param {Function} onSelect - Callback when server is selected
+     * @param {Object} serverExistsMap - Map of server -> exists (optional)
      */
-    showInitialSelection(characterName, onSelect) {
+    showInitialSelection(characterName, onSelect, serverExistsMap = null) {
         const servers = this.getAllServers();
         const message = `<strong>${characterName}</strong> 캐릭터를 검색할 서버를 선택해주세요.`;
-        this.ui.showServerSelection(characterName, servers, onSelect, message);
+        this.ui.showServerSelection(characterName, servers, onSelect, message, null, serverExistsMap);
     }
 
     /**
@@ -49,12 +50,13 @@ export class ServerSelector {
      * @param {string} characterName - Character name
      * @param {string} failedServer - Server where character was not found
      * @param {Function} onSelect - Callback when server is selected
+     * @param {Object} serverExistsMap - Map of server -> exists (optional)
      */
-    showNotFoundSelection(characterName, failedServer, onSelect) {
+    showNotFoundSelection(characterName, failedServer, onSelect, serverExistsMap = null) {
         const servers = this.getAllServers();
         const serverDisplayName = this.getDisplayName(failedServer);
         const message = `<strong>${characterName}@${serverDisplayName}</strong> 캐릭터를 찾을 수 없습니다.<br>다른 서버를 선택해주세요.`;
-        this.ui.showServerSelection(characterName, servers, onSelect, message, failedServer);
+        this.ui.showServerSelection(characterName, servers, onSelect, message, failedServer, serverExistsMap);
         return true;
     }
 
@@ -63,12 +65,13 @@ export class ServerSelector {
      * @param {string} characterName - Character name
      * @param {string} currentServer - Server with no records
      * @param {Function} onSelect - Callback when server is selected
+     * @param {Object} serverExistsMap - Map of server -> exists (optional)
      */
-    showNoRecordsSelection(characterName, currentServer, onSelect) {
+    showNoRecordsSelection(characterName, currentServer, onSelect, serverExistsMap = null) {
         const servers = this.getAllServers();
         const serverDisplayName = this.getDisplayName(currentServer);
         const message = `<strong>${characterName}@${serverDisplayName}</strong> 캐릭터의 레이드 기록을 찾을 수 없습니다.<br>다른 서버를 선택해주세요.`;
-        this.ui.showServerSelection(characterName, servers, onSelect, message, currentServer);
+        this.ui.showServerSelection(characterName, servers, onSelect, message, currentServer, serverExistsMap);
         return true;
     }
 

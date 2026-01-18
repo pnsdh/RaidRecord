@@ -2,7 +2,7 @@
  * FFLogs API - Character related queries
  */
 
-import { buildTierQueryField, buildTierQueryVariables } from './queryBuilder.js';
+import { buildTierQueryField, buildTierQueryVariables, buildServerSearchField, buildServerSearchVariables } from './queryBuilder.js';
 
 /**
  * Calculate job frequency from encounter parses
@@ -196,5 +196,49 @@ export class CharacterAPI {
             const character = data.characterData[alias];
             return processTierResult(character, tier);
         });
+    }
+
+    /**
+     * Search for a character across multiple servers in a single batch query
+     * @param {string} characterName - Character name
+     * @param {string[]} servers - Array of server names (English)
+     * @param {string} serverRegion - Server region
+     * @returns {Object} Map of serverName -> characterId (or null if not found)
+     */
+    async searchCharacterOnServers(characterName, servers, serverRegion) {
+        // Build query with aliases for each server
+        let queryFields = '';
+        let variableDefinitions = '$name: String!, $region: String!';
+        const variables = {
+            name: characterName,
+            region: serverRegion
+        };
+
+        servers.forEach((server, index) => {
+            queryFields += buildServerSearchField(index);
+            const { definitions, values } = buildServerSearchVariables(server.toLowerCase(), index);
+            variableDefinitions += `, ${definitions}`;
+            Object.assign(variables, values);
+        });
+
+        const queryString = `
+            query(${variableDefinitions}) {
+                characterData {
+                    ${queryFields}
+                }
+            }
+        `;
+
+        const data = await this.core.query(queryString, variables, true);
+
+        // Build result map
+        const result = {};
+        servers.forEach((server, index) => {
+            const alias = `server${index}`;
+            const character = data?.characterData?.[alias];
+            result[server] = character?.id || null;
+        });
+
+        return result;
     }
 }

@@ -13,6 +13,7 @@ import { initializeElements, populateServerSelect, attachEventListeners } from '
 import { parseCharacterInput } from '../utils/characterParser.js';
 import { isCharacterNotFoundError } from '../errors.js';
 import { ServerSelector } from './serverSelector.js';
+import { KR_SERVERS } from '../constants.js';
 
 /**
  * Main App class
@@ -219,11 +220,13 @@ export class App {
         // Determine which server to use
         let targetServer = parsedServer || selectedServer;
 
-        // If no server specified at all, show all server options
+        // If no server specified at all, check all servers and show selection
         if (!targetServer) {
+            const serverExistsMap = await this.checkCharacterOnServers(characterName);
             this.serverSelector.showInitialSelection(
                 characterName,
-                (chosenServer) => this.searchWithServer(characterName, chosenServer)
+                (chosenServer) => this.searchWithServer(characterName, chosenServer),
+                serverExistsMap
             );
             return;
         }
@@ -254,11 +257,15 @@ export class App {
 
             // Check if we got any results
             if (sortedHistory.length === 0) {
-                // No results found, show server selection for other servers
+                // No results found, check other servers for character existence
+                const serverExistsMap = await this.checkCharacterOnServers(characterName, serverName);
+
+                // Show server selection for other servers
                 const hasOtherServers = this.serverSelector.showNoRecordsSelection(
                     characterName,
                     serverName,
-                    (chosenServer) => this.searchWithServer(characterName, chosenServer)
+                    (chosenServer) => this.searchWithServer(characterName, chosenServer),
+                    serverExistsMap
                 );
                 if (hasOtherServers) {
                     return;
@@ -274,11 +281,15 @@ export class App {
         } catch (error) {
             // Check if it's a "character not found" error
             if (isCharacterNotFoundError(error)) {
+                // Check other servers for character existence
+                const serverExistsMap = await this.checkCharacterOnServers(characterName, serverName);
+
                 // Show server selection for other servers
                 const hasOtherServers = this.serverSelector.showNotFoundSelection(
                     characterName,
                     serverName,
-                    (chosenServer) => this.searchWithServer(characterName, chosenServer)
+                    (chosenServer) => this.searchWithServer(characterName, chosenServer),
+                    serverExistsMap
                 );
                 if (hasOtherServers) {
                     return;
@@ -294,6 +305,36 @@ export class App {
             this.isSearching = false;
             this.updateSearchButton();
             this.ui.enableControls();
+        }
+    }
+
+    /**
+     * Check if character exists on servers
+     * @param {string} characterName - Character name
+     * @param {string} excludeServer - Server to exclude from search (optional)
+     * @returns {Object} Map of server -> characterId (or null if not found)
+     */
+    async checkCharacterOnServers(characterName, excludeServer = null) {
+        try {
+            let servers = KR_SERVERS.map(s => s.nameEN);
+
+            if (excludeServer) {
+                servers = servers.filter(s => s.toLowerCase() !== excludeServer.toLowerCase());
+            }
+
+            const result = await this.api.searchCharacterOnServers(
+                characterName,
+                servers,
+                APP_CONFIG.REGION
+            );
+
+            // Update API usage after query
+            this.updateApiUsage();
+
+            return result;
+        } catch {
+            // If batch search fails, return empty map
+            return {};
         }
     }
 

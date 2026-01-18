@@ -35,6 +35,10 @@ export class FFLogsAPI extends FFLogsAPICore {
         return this.characterAPI.getBatchTierData(characterId, tiers);
     }
 
+    async searchCharacterOnServers(characterName, servers, serverRegion) {
+        return this.characterAPI.searchCharacterOnServers(characterName, servers, serverRegion);
+    }
+
     /**
      * Reports API methods - delegated to ReportsAPI
      */

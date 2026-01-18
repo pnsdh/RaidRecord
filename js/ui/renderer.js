@@ -302,8 +302,9 @@ export class UIController {
      * @param {Function} onServerSelect - Callback function when server is selected
      * @param {string} message - Optional custom message to display
      * @param {string} disabledServer - Optional server to show as disabled
+     * @param {Object} serverExistsMap - Optional map of server -> exists (boolean/id)
      */
-    showServerSelection(characterName, servers, onServerSelect, message = null, disabledServer = null) {
+    showServerSelection(characterName, servers, onServerSelect, message = null, disabledServer = null, serverExistsMap = null) {
         // Hide other sections
         this.loadingSection.style.display = 'none';
         this.errorSection.style.display = 'none';
@@ -326,12 +327,17 @@ export class UIController {
             const serverKR = getServerNameKR(serverEN);
             const button = document.createElement('button');
             button.className = 'server-choice-btn';
-            button.textContent = serverKR;
             button.setAttribute('data-server', serverEN);
+            button.textContent = serverKR;
 
-            // Disable button if it's the failed server
-            const isDisabled = disabledServer && serverEN.toLowerCase() === disabledServer.toLowerCase();
-            if (isDisabled) {
+            // Check if character exists on this server
+            const exists = serverExistsMap && serverExistsMap[serverEN];
+
+            // Disable if: explicitly disabled server OR character doesn't exist (when map provided)
+            const isExplicitlyDisabled = disabledServer && serverEN.toLowerCase() === disabledServer.toLowerCase();
+            const isNotExists = serverExistsMap && !exists;
+
+            if (isExplicitlyDisabled || isNotExists) {
                 button.disabled = true;
             } else {
                 button.addEventListener('click', () => {

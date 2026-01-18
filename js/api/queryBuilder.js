@@ -87,3 +87,32 @@ export function buildReportQueryVariables(reportFight, index) {
         }
     };
 }
+
+/**
+ * Build character search query field for a server
+ * @param {number} index - Server index
+ * @returns {string} Query field string
+ */
+export function buildServerSearchField(index) {
+    const alias = `server${index}`;
+    return `
+        ${alias}: character(name: $name, serverSlug: $server${index}, serverRegion: $region) {
+            id
+        }
+    `;
+}
+
+/**
+ * Build character search query variables for a server
+ * @param {string} serverName - Server name (English)
+ * @param {number} index - Server index
+ * @returns {Object} { definitions, values }
+ */
+export function buildServerSearchVariables(serverName, index) {
+    return {
+        definitions: `$server${index}: String!`,
+        values: {
+            [`server${index}`]: serverName
+        }
+    };
+}
