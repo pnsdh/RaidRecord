@@ -113,11 +113,6 @@ export class FFLogsAPICore {
             throw new AppError(result.errors[0].message, ErrorCodes.NETWORK_ERROR);
         }
 
-        // Log errors but continue if we have partial data
-        if (result.errors) {
-            console.warn('GraphQL partial errors:', result.errors);
-        }
-
         // Extract and store rate limit data if present
         if (result.data && result.data.rateLimitData) {
             this.rateLimitData = result.data.rateLimitData;
