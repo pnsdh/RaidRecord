@@ -13,7 +13,7 @@ import { initializeElements, attachEventListeners } from './init.js';
 import { parseCharacterInput } from '../utils/characterParser.js';
 import { isCharacterNotFoundError } from '../errors.js';
 import { ServerSelector } from './serverSelector.js';
-import { KR_SERVERS, getServerNameKR } from '../constants.js';
+import { KR_SERVERS } from '../constants.js';
 
 /**
  * Main App class
@@ -210,9 +210,12 @@ export class App {
             return;
         }
 
+        // Save original user input for storage
+        const originalInput = inputValue;
+
         // If server specified in input, search directly
         if (parsedServer) {
-            await this.searchWithServer(characterName, parsedServer, inputValue);
+            await this.searchWithServer(characterName, parsedServer, originalInput);
             return;
         }
 
@@ -227,8 +230,7 @@ export class App {
         // If character exists on exactly one server, search directly
         if (existingServers.length === 1) {
             const server = existingServers[0];
-            const serverKR = getServerNameKR(server);
-            await this.searchWithServer(characterName, server, `${characterName}@${serverKR}`);
+            await this.searchWithServer(characterName, server, originalInput);
             return;
         }
 
@@ -236,8 +238,7 @@ export class App {
         this.serverSelector.showInitialSelection(
             characterName,
             (chosenServer) => {
-                const serverKR = getServerNameKR(chosenServer);
-                this.searchWithServer(characterName, chosenServer, `${characterName}@${serverKR}`);
+                this.searchWithServer(characterName, chosenServer, originalInput);
             },
             serverExistsMap
         );
@@ -274,8 +275,7 @@ export class App {
                     characterName,
                     serverName,
                     (chosenServer) => {
-                        const serverKR = getServerNameKR(chosenServer);
-                        this.searchWithServer(characterName, chosenServer, `${characterName}@${serverKR}`);
+                        this.searchWithServer(characterName, chosenServer, searchInput);
                     },
                     serverExistsMap
                 );
@@ -304,8 +304,7 @@ export class App {
                     characterName,
                     serverName,
                     (chosenServer) => {
-                        const serverKR = getServerNameKR(chosenServer);
-                        this.searchWithServer(characterName, chosenServer, `${characterName}@${serverKR}`);
+                        this.searchWithServer(characterName, chosenServer, searchInput);
                     },
                     serverExistsMap
                 );
