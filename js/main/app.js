@@ -13,7 +13,7 @@ import { initializeElements, attachEventListeners } from './init.js';
 import { parseCharacterInput } from '../utils/characterParser.js';
 import { isCharacterNotFoundError } from '../errors.js';
 import { ServerSelector } from './serverSelector.js';
-import { KR_SERVERS } from '../constants.js';
+import { KR_SERVERS, getServerNameKR } from '../constants.js';
 
 /**
  * Main App class
@@ -216,11 +216,29 @@ export class App {
             return;
         }
 
-        // No server specified, check all servers and show selection
+        // No server specified, check all servers
         const serverExistsMap = await this.checkCharacterOnServers(characterName);
+
+        // Get list of servers where character exists
+        const existingServers = Object.entries(serverExistsMap)
+            .filter(([, id]) => id)
+            .map(([server]) => server);
+
+        // If character exists on exactly one server, search directly
+        if (existingServers.length === 1) {
+            const server = existingServers[0];
+            const serverKR = getServerNameKR(server);
+            await this.searchWithServer(characterName, server, `${characterName}@${serverKR}`);
+            return;
+        }
+
+        // Otherwise show server selection
         this.serverSelector.showInitialSelection(
             characterName,
-            (chosenServer) => this.searchWithServer(characterName, chosenServer, `${characterName}@${chosenServer}`),
+            (chosenServer) => {
+                const serverKR = getServerNameKR(chosenServer);
+                this.searchWithServer(characterName, chosenServer, `${characterName}@${serverKR}`);
+            },
             serverExistsMap
         );
     }
@@ -255,7 +273,10 @@ export class App {
                 const hasOtherServers = this.serverSelector.showNoRecordsSelection(
                     characterName,
                     serverName,
-                    (chosenServer) => this.searchWithServer(characterName, chosenServer, `${characterName}@${chosenServer}`),
+                    (chosenServer) => {
+                        const serverKR = getServerNameKR(chosenServer);
+                        this.searchWithServer(characterName, chosenServer, `${characterName}@${serverKR}`);
+                    },
                     serverExistsMap
                 );
                 if (hasOtherServers) {
@@ -279,7 +300,10 @@ export class App {
                 const hasOtherServers = this.serverSelector.showNotFoundSelection(
                     characterName,
                     serverName,
-                    (chosenServer) => this.searchWithServer(characterName, chosenServer, `${characterName}@${chosenServer}`),
+                    (chosenServer) => {
+                        const serverKR = getServerNameKR(chosenServer);
+                        this.searchWithServer(characterName, chosenServer, `${characterName}@${serverKR}`);
+                    },
                     serverExistsMap
                 );
                 if (hasOtherServers) {
