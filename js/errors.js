@@ -37,16 +37,11 @@ export function isErrorCode(error, code) {
 }
 
 /**
- * Check if an error is a "character not found" error (either AppError or legacy string match)
+ * Check if an error is a "character not found" error
  * @param {Error} error - The error to check
  * @returns {boolean}
  */
 export function isCharacterNotFoundError(error) {
-    if (isErrorCode(error, ErrorCodes.CHARACTER_NOT_FOUND)) {
-        return true;
-    }
-    // Legacy support for string-based error messages
-    return error.message?.includes('Character not found') ||
-           error.message?.includes('캐릭터를 찾을 수 없습니다');
+    return isErrorCode(error, ErrorCodes.CHARACTER_NOT_FOUND);
 }
 

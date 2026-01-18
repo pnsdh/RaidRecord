@@ -62,7 +62,7 @@ export class UIController {
     /**
      * Show loading state
      */
-    showLoading(message = '캐릭터 데이터를 불러오는 중...') {
+    showLoading(message = MESSAGES.SEARCH.LOADING_DEFAULT) {
         this.hideAll();
         this.loadingText.textContent = message;
         this.progressText.style.display = 'none';
@@ -184,7 +184,7 @@ export class UIController {
      */
     generateTableHTML(raidHistory) {
         if (raidHistory.length === 0) {
-            return '<p class="no-results">클리어 기록이 없습니다.</p>';
+            return `<p class="no-results">${MESSAGES.SEARCH.NO_CLEAR_RECORDS}</p>`;
         }
 
         let html = `

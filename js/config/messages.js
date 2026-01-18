@@ -20,7 +20,9 @@ export const MESSAGES = {
         SEARCHING_RAID_HISTORY: '레이드 이력 검색 중...',
         INVALID_FORMAT: '검색 형식: 캐릭터명 서버명 (예: 빛의영자 카벙클)',
         FETCHING_RAID_DATA: '레이드 클리어 기록 조회 중',
-        FETCHING_PARTY_MEMBERS: '파티 멤버 정보 조회 중'
+        FETCHING_PARTY_MEMBERS: '파티 멤버 정보 조회 중',
+        LOADING_DEFAULT: '캐릭터 데이터를 불러오는 중...',
+        NO_CLEAR_RECORDS: '클리어 기록이 없습니다.'
     },
 
     // API related
