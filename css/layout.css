@@ -37,16 +37,6 @@ header {
     margin-bottom: 1rem;
 }
 
-.server-select {
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    background-color: var(--bg-tertiary);
-    color: var(--text-primary);
-    font-size: 1rem;
-    cursor: pointer;
-}
-
 .search-input {
     flex: 1;
     padding: 0.75rem;
@@ -63,12 +53,6 @@ header {
 }
 
 .search-input:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background-color: var(--bg-primary);
-}
-
-.server-select:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     background-color: var(--bg-primary);
@@ -391,7 +375,6 @@ header {
         gap: 0.5rem;
     }
 
-    .server-select,
     .search-input,
     .search-btn {
         width: 100%;

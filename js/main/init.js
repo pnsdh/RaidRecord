@@ -3,8 +3,6 @@
  * Handles DOM element references, initial state setup, and event listener binding
  */
 
-import { KR_SERVERS } from '../constants.js';
-import { StorageService } from './storage.js';
 import { MESSAGES } from '../config/messages.js';
 
 /**
@@ -12,7 +10,6 @@ import { MESSAGES } from '../config/messages.js';
  */
 export function initializeElements() {
     return {
-        serverSelect: document.getElementById('serverSelect'),
         searchInput: document.getElementById('characterSearch'),
         searchBtn: document.getElementById('searchBtn'),
         raidSelectBtn: document.getElementById('raidSelectBtn'),
@@ -24,24 +21,6 @@ export function initializeElements() {
         saveRaidSelectionBtn: document.getElementById('saveRaidSelectionBtn'),
         saveSettingsBtn: document.getElementById('saveSettingsBtn')
     };
-}
-
-/**
- * Populate server dropdown with Korean servers
- */
-export function populateServerSelect(serverSelect) {
-    KR_SERVERS.forEach(server => {
-        const option = document.createElement('option');
-        option.value = server.nameEN;
-        option.textContent = server.nameKR; // Korean name only
-        serverSelect.appendChild(option);
-    });
-
-    // Load saved server
-    const savedServer = StorageService.getServer();
-    if (savedServer) {
-        serverSelect.value = savedServer;
-    }
 }
 
 /**

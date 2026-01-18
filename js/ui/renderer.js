@@ -30,7 +30,6 @@ export class UIController {
         // Cache control elements for enable/disable operations
         this.controls = {
             searchInput: document.getElementById('characterSearch'),
-            serverSelect: document.getElementById('serverSelect'),
             raidSelectBtn: document.getElementById('raidSelectBtn'),
             settingsBtn: document.getElementById('settingsBtn')
         };

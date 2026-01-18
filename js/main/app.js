@@ -9,7 +9,7 @@ import { FFLogsAPI } from '../api.js';
 import { APP_CONFIG, UI_CONFIG, TIMING } from '../config/config.js';
 import { MESSAGES } from '../config/messages.js';
 import { SettingsModal, RaidSelectionModal } from './modals.js';
-import { initializeElements, populateServerSelect, attachEventListeners } from './init.js';
+import { initializeElements, attachEventListeners } from './init.js';
 import { parseCharacterInput } from '../utils/characterParser.js';
 import { isCharacterNotFoundError } from '../errors.js';
 import { ServerSelector } from './serverSelector.js';
@@ -27,7 +27,6 @@ export class App {
 
         // Initialize elements
         this.elements = initializeElements();
-        populateServerSelect(this.elements.serverSelect);
 
         // Initialize server selector
         this.serverSelector = new ServerSelector(this.ui);
@@ -110,21 +109,16 @@ export class App {
      * Perform character search with specified server
      * @param {string} characterName - Character name
      * @param {string} serverName - Server name (English)
+     * @param {string} searchInput - Original search input to save
      * @returns {Promise<{character: Object, raidHistory: Array}>} Search results
      */
-    async performSearch(characterName, serverName) {
-        // Save selected server for next search
-        StorageService.saveServer(serverName);
+    async performSearch(characterName, serverName, searchInput) {
+        // Save original search input for next search
+        this.saveLastSearch(searchInput);
 
-        // Save character name for next search
-        this.saveLastSearch(characterName);
-
-        // Update search fields (input and server dropdown)
-        this.elements.searchInput.value = characterName;
-        this.elements.serverSelect.value = serverName;
-
-        // Update placeholder with last search
-        this.elements.searchInput.placeholder = characterName;
+        // Update search field and placeholder
+        this.elements.searchInput.value = searchInput;
+        this.elements.searchInput.placeholder = searchInput;
 
         // Show loading
         this.ui.showLoading('캐릭터 검색 중...');
@@ -191,7 +185,6 @@ export class App {
         }
 
         let inputValue = this.elements.searchInput.value.trim();
-        const selectedServer = this.elements.serverSelect.value;
 
         // If no input, use last search
         if (!inputValue) {
@@ -217,30 +210,28 @@ export class App {
             return;
         }
 
-        // Determine which server to use
-        let targetServer = parsedServer || selectedServer;
-
-        // If no server specified at all, check all servers and show selection
-        if (!targetServer) {
-            const serverExistsMap = await this.checkCharacterOnServers(characterName);
-            this.serverSelector.showInitialSelection(
-                characterName,
-                (chosenServer) => this.searchWithServer(characterName, chosenServer),
-                serverExistsMap
-            );
+        // If server specified in input, search directly
+        if (parsedServer) {
+            await this.searchWithServer(characterName, parsedServer, inputValue);
             return;
         }
 
-        // Perform search with determined server
-        await this.searchWithServer(characterName, targetServer);
+        // No server specified, check all servers and show selection
+        const serverExistsMap = await this.checkCharacterOnServers(characterName);
+        this.serverSelector.showInitialSelection(
+            characterName,
+            (chosenServer) => this.searchWithServer(characterName, chosenServer, `${characterName}@${chosenServer}`),
+            serverExistsMap
+        );
     }
 
     /**
      * Search character on specified server
      * @param {string} characterName - Character name
      * @param {string} serverName - Server name (English)
+     * @param {string} searchInput - Original search input to save
      */
-    async searchWithServer(characterName, serverName) {
+    async searchWithServer(characterName, serverName, searchInput) {
         try {
             // Set searching state
             this.isSearching = true;
@@ -250,7 +241,7 @@ export class App {
             this.serverSelector.hide();
 
             // Perform search
-            const { character, raidHistory } = await this.performSearch(characterName, serverName);
+            const { character, raidHistory } = await this.performSearch(characterName, serverName, searchInput);
 
             // Sort by newest first
             const sortedHistory = sortRaidHistory(raidHistory);
@@ -264,7 +255,7 @@ export class App {
                 const hasOtherServers = this.serverSelector.showNoRecordsSelection(
                     characterName,
                     serverName,
-                    (chosenServer) => this.searchWithServer(characterName, chosenServer),
+                    (chosenServer) => this.searchWithServer(characterName, chosenServer, `${characterName}@${chosenServer}`),
                     serverExistsMap
                 );
                 if (hasOtherServers) {
@@ -288,7 +279,7 @@ export class App {
                 const hasOtherServers = this.serverSelector.showNotFoundSelection(
                     characterName,
                     serverName,
-                    (chosenServer) => this.searchWithServer(characterName, chosenServer),
+                    (chosenServer) => this.searchWithServer(characterName, chosenServer, `${characterName}@${chosenServer}`),
                     serverExistsMap
                 );
                 if (hasOtherServers) {

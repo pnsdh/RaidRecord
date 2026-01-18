@@ -91,22 +91,6 @@ export class StorageService {
     }
 
     /**
-     * Get selected server
-     * @returns {string|null}
-     */
-    static getServer() {
-        return this.get('SERVER');
-    }
-
-    /**
-     * Save selected server
-     * @param {string} server
-     */
-    static saveServer(server) {
-        this.set('SERVER', server);
-    }
-
-    /**
      * Get selected raid IDs
      * @returns {string[]|null}
      */

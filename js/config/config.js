@@ -13,7 +13,6 @@ export const APP_CONFIG = {
 export const STORAGE_KEYS = {
     CLIENT_ID: 'raidrecord_client_id',
     CLIENT_SECRET: 'raidrecord_client_secret',
-    SERVER: 'raidrecord_server',
     ACCESS_TOKEN: 'raidrecord_access_token',
     TOKEN_EXPIRY: 'raidrecord_token_expiry',
     SELECTED_RAIDS: 'raidrecord_selected_raids',
