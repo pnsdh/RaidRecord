@@ -287,6 +287,9 @@ export class App {
             // Render results
             this.ui.renderResults(character, sortedHistory);
 
+            // Clear search input (placeholder still shows last search)
+            this.elements.searchInput.value = '';
+
             // Update API usage after all queries
             this.updateApiUsage();
 
