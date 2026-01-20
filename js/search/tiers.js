@@ -55,17 +55,27 @@ export function processTierData(api, combinedData, tier, partyMembers = [], figh
         };
     }
 
-    // Use fight start time for week calculation if available, otherwise use clear time
-    // fightStartTime should be the actual start, clearTimestamp is the end time
-    const weekCalculationTime = fightStartTime || clearTimestamp;
-    const isWeekAmbiguous = isAmbiguousWeek(fightStartTime);
+    // Week calculation differs by raid type:
+    // - SAVAGE: Use fight start time, if 17:00-19:00 Tue then assume previous week entry
+    // - ULTIMATE: Use clear time only, no ambiguity
+    const isUltimate = tier.type === 'ULTIMATE';
+    const weekCalculationTime = isUltimate ? clearTimestamp : (fightStartTime || clearTimestamp);
+    let clearWeek = getWeekNumber(tier.releaseDate, weekCalculationTime);
+    let isWeekAmbiguous = false;
+
+    // For Savage: if fight started in ambiguous window (Tue 17:00-19:00),
+    // assume entry before reset and subtract 1 week, mark as ambiguous
+    if (!isUltimate && isAmbiguousWeek(fightStartTime)) {
+        clearWeek = Math.max(1, clearWeek - 1);
+        isWeekAmbiguous = true;
+    }
 
     return {
         encounterName: '',
         job: api.getJobFromSpecId(jobSpec),
         clearTimestamp: clearTimestamp,
         fightStartTime: fightStartTime,
-        clearWeek: getWeekNumber(tier.releaseDate, weekCalculationTime),
+        clearWeek: clearWeek,
         isWeekAmbiguous: isWeekAmbiguous,
         clearDate: formatDate(clearTimestamp),
         allStarPoints: allStarData.points,
