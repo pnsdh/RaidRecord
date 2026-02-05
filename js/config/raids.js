@@ -4,6 +4,10 @@
 
 import { StorageService } from '../main/storage.js';
 
+// Cutoff date for auto-adding new raids to existing users
+// Raids released on or after this date are considered "new" and auto-added
+const NEW_RAID_CUTOFF_DATE = '2026-02-10';
+
 // Raid tier data structure
 // Each tier contains: type, full name, short name, release date, zone ID, partition ID
 export const RAID_TIERS = {
@@ -11,6 +15,17 @@ export const RAID_TIERS = {
     DAWNTRAIL: {
         expansion: '황금의 유산',
         tiers: [
+            {
+                type: 'SAVAGE',
+                fullName: '아르카디아 선수권: 헤비급',
+                shortName: '헤비',
+                version: '7.4',
+                releaseDate: '2026-02-10',
+                zoneId: 73,
+                partition: 5,
+                encounterCount: 5,
+                finalEncounterId: 105
+            },
             {
                 type: 'SAVAGE',
                 fullName: '아르카디아 선수권: 크루저급',
@@ -36,7 +51,7 @@ export const RAID_TIERS = {
             {
                 type: 'SAVAGE',
                 fullName: '아르카디아 선수권: 라이트헤비급',
-                shortName: '라이트헤비',
+                shortName: '라헤',
                 version: '7.05',
                 releaseDate: '2025-01-14',
                 zoneId: 62,
@@ -179,14 +194,33 @@ export function getAllRaidTiers() {
 
 /**
  * Get selected raid tiers based on user preference
+ * Raids released on or after NEW_RAID_CUTOFF_DATE are automatically added once for existing users
  */
 export function getSelectedRaidTiers() {
     const selectedIds = StorageService.getSelectedRaids();
     const allTiers = getAllRaidTiers();
 
-    // If no selection saved, return all tiers
+    // If no selection saved, return all tiers (first-time user)
     if (!selectedIds || selectedIds.length === 0) {
         return allTiers;
+    }
+
+    // Find new raids (released on or after cutoff date) that haven't been auto-added yet
+    const addedNewRaids = StorageService.getAddedNewRaids();
+    const newRaidIds = allTiers
+        .filter(tier => tier.releaseDate >= NEW_RAID_CUTOFF_DATE)
+        .map(tier => tier.id);
+    const raidsToAdd = newRaidIds.filter(id => !addedNewRaids.includes(id));
+
+    // Auto-add new raids to selection (only once per raid)
+    if (raidsToAdd.length > 0) {
+        const updatedSelectedIds = [...selectedIds, ...raidsToAdd];
+        const updatedAddedNewRaids = [...addedNewRaids, ...raidsToAdd];
+
+        StorageService.saveSelectedRaids(updatedSelectedIds);
+        StorageService.saveAddedNewRaids(updatedAddedNewRaids);
+
+        return allTiers.filter(tier => updatedSelectedIds.includes(tier.id));
     }
 
     // Filter based on selected IDs

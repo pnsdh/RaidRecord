@@ -107,6 +107,22 @@ export class StorageService {
     }
 
     /**
+     * Get list of new raids that have been auto-added
+     * @returns {string[]}
+     */
+    static getAddedNewRaids() {
+        return this.getJSON('ADDED_NEW_RAIDS', []);
+    }
+
+    /**
+     * Save list of new raids that have been auto-added
+     * @param {string[]} ids
+     */
+    static saveAddedNewRaids(ids) {
+        this.setJSON('ADDED_NEW_RAIDS', ids);
+    }
+
+    /**
      * Get access token
      * @returns {string|null}
      */

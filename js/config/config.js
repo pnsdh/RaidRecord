@@ -16,6 +16,7 @@ export const STORAGE_KEYS = {
     ACCESS_TOKEN: 'raidrecord_access_token',
     TOKEN_EXPIRY: 'raidrecord_token_expiry',
     SELECTED_RAIDS: 'raidrecord_selected_raids',
+    ADDED_NEW_RAIDS: 'raidrecord_added_new_raids',
     LAST_SEARCH: 'raidrecord_last_search'
 };
 
