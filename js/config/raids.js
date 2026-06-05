@@ -16,6 +16,17 @@ export const RAID_TIERS = {
         expansion: '황금의 유산',
         tiers: [
             {
+                type: 'ULTIMATE',
+                fullName: '절 요성난무',
+                shortName: '케프카',
+                version: '7.51',
+                releaseDate: '2026-06-02',
+                zoneId: 76,
+                partition: 5,
+                encounterCount: 1,
+                finalEncounterId: 1085
+            },
+            {
                 type: 'SAVAGE',
                 fullName: '아르카디아 선수권: 헤비급',
                 shortName: '헤비',
