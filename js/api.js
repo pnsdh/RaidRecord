@@ -6,6 +6,7 @@
 import { FFLogsAPICore } from './api/core.js';
 import { CharacterAPI } from './api/character.js';
 import { ReportsAPI } from './api/reports.js';
+import { MemberClearsAPI } from './api/memberClears.js';
 
 /**
  * Main FFLogs API class that combines all API functionality
@@ -22,6 +23,7 @@ export class FFLogsAPI extends FFLogsAPICore {
         // Initialize sub-APIs with reference to this instance (core)
         this.characterAPI = new CharacterAPI(this);
         this.reportsAPI = new ReportsAPI(this);
+        this.memberClearsAPI = new MemberClearsAPI(this);
     }
 
     /**
@@ -44,6 +46,13 @@ export class FFLogsAPI extends FFLogsAPICore {
      */
     async getBatchPartyMembers(reportFights) {
         return this.reportsAPI.getBatchPartyMembers(reportFights);
+    }
+
+    /**
+     * Member clear-order API methods - delegated to MemberClearsAPI
+     */
+    async getBatchMemberClearOrders(requests, serverRegion) {
+        return this.memberClearsAPI.getBatchMemberClearOrders(requests, serverRegion);
     }
 
     /**

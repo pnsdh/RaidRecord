@@ -25,6 +25,16 @@ export class App {
         this.ui = new UIController();
         this.isSearching = false;
 
+        // Provide lazy clear-order lookups to tooltips (reads this.api at call time).
+        // Refresh the API usage display as soon as each lazy lookup settles.
+        this.ui.setClearOrderProvider((request) => {
+            if (!this.api) return Promise.resolve(null);
+            return this.api
+                .getBatchMemberClearOrders([request], APP_CONFIG.REGION)
+                .then((results) => (results && results[0]) || null)
+                .finally(() => this.updateApiUsage());
+        });
+
         // Initialize elements
         this.elements = initializeElements();
 

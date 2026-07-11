@@ -6,6 +6,7 @@
 import { getServerNameKR, getJobOrder, JOB_COLORS, JOB_NAMES_KR } from '../../constants.js';
 import { formatJobBadge, getPercentileColor, formatNumber } from '../formatters.js';
 import { DAY_NAMES } from '../../config/time.js';
+import { escapeHtml } from '../../utils/html.js';
 
 // Common table styles (internal use only)
 const TABLE_STYLES = {
@@ -31,9 +32,27 @@ function formatJobInfo(job) {
 }
 
 /**
- * Create party members HTML for tooltip
+ * Format a party member's clear-order badge (right-aligned in the member row).
+ * order === 1 → first clear (미클리어 상태로 클리어), order >= 2 → repeat clear,
+ * null/undefined → could not be determined (private logs).
  */
-export function createPartyMembersHTML(partyMembers) {
+function formatClearOrderBadge(order) {
+    if (order === 1) {
+        return '<span style="margin-left: auto; color: #1eff00; font-size: 0.85em; font-weight: 600;">첫 클리어</span>';
+    }
+    if (typeof order === 'number' && order >= 2) {
+        return `<span style="margin-left: auto; color: var(--text-secondary); font-size: 0.85em;">${order}번째</span>`;
+    }
+    return '<span style="margin-left: auto; color: var(--text-secondary); font-size: 0.85em; opacity: 0.7;">비공개</span>';
+}
+
+/**
+ * Create party members HTML for tooltip
+ * @param {Array} partyMembers - Party member objects (may carry `clearOrder`)
+ * @param {Object} [options]
+ * @param {boolean} [options.loadingOrders] - Show a "조회 중" header while clear orders load
+ */
+export function createPartyMembersHTML(partyMembers, options = {}) {
     if (!partyMembers || partyMembers.length === 0) {
         return '<p style="color: var(--text-secondary);">파티 정보 없음</p>';
     }
@@ -43,16 +62,32 @@ export function createPartyMembersHTML(partyMembers) {
         return getJobOrder(a.job) - getJobOrder(b.job);
     });
 
-    let html = '<p style="font-weight: 600; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">파티 멤버</p>';
+    // Clear-order data is only present when the lazy lookup has resolved for at
+    // least one member. If none resolved, degrade gracefully to the plain list.
+    const hasOrderData = partyMembers.some(m => typeof m.clearOrder === 'number');
+
+    let headerText = '파티 멤버';
+    if (hasOrderData) {
+        const firstClearCount = partyMembers.filter(m => m.clearOrder === 1).length;
+        const unknownCount = partyMembers.filter(m => m.clearOrder === null || m.clearOrder === undefined).length;
+        const unknownText = unknownCount > 0 ? `, +${unknownCount} 비공개` : '';
+        headerText += ` <span style="color: var(--text-secondary); font-weight: 400; font-size: 0.9em;">(${firstClearCount}미클 클리어${unknownText})</span>`;
+    } else if (options.loadingOrders) {
+        headerText += ' <span style="color: var(--text-secondary); font-weight: 400; font-size: 0.9em;">(클리어 순번 조회 중…)</span>';
+    }
+
+    let html = `<p style="font-weight: 600; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">${headerText}</p>`;
 
     for (const member of sortedMembers) {
         const jobBadge = formatJobBadge(member.job);
         const serverKR = getServerNameKR(member.server);
-        const memberName = `${member.name}@${serverKR}`;
+        const memberName = `${escapeHtml(member.name)}@${escapeHtml(serverKR)}`;
+        const orderBadge = hasOrderData ? formatClearOrderBadge(member.clearOrder) : '';
         html += `
             <div class="party-member">
                 ${jobBadge}
                 <span class="member-name">${memberName}</span>
+                ${orderBadge}
             </div>
         `;
     }

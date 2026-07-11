@@ -4,6 +4,7 @@
 
 import { getServerNameKR, JOB_COLORS } from '../constants.js';
 import { attachTooltipListeners } from './tooltips.js';
+import { escapeHtml } from '../utils/html.js';
 import { formatJobText, formatWeekBadge, formatAllStarScore, formatTierBadge, formatNumber } from './formatters.js';
 import { calculateApiUsage } from '../utils/apiUsage.js';
 import { MESSAGES } from '../config/messages.js';
@@ -34,6 +35,17 @@ export class UIController {
             raidSelectBtn: document.getElementById('raidSelectBtn'),
             settingsBtn: document.getElementById('settingsBtn')
         };
+
+        // Provider for lazily fetching party members' clear orders (set by App)
+        this.clearOrderProvider = null;
+    }
+
+    /**
+     * Set the provider used to lazily fetch party members' clear orders.
+     * @param {Function} provider - (request) => Promise<Array<number|null>>
+     */
+    setClearOrderProvider(provider) {
+        this.clearOrderProvider = provider;
     }
 
     /**
@@ -115,7 +127,7 @@ export class UIController {
         const fFlogsUrl = `https://ko.fflogs.com/character/id/${character.id}`;
 
         // Apply gradient with job color and make it clickable
-        this.characterName.innerHTML = `<a href="${fFlogsUrl}" target="_blank" style="text-decoration: none; background: linear-gradient(135deg, ${jobColor}, #ffffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${characterName}</a>`;
+        this.characterName.innerHTML = `<a href="${fFlogsUrl}" target="_blank" style="text-decoration: none; background: linear-gradient(135deg, ${jobColor}, #ffffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${escapeHtml(characterName)}</a>`;
 
         // Store job color for image export
         this.characterName.setAttribute('data-job-color', jobColor);
@@ -129,7 +141,7 @@ export class UIController {
         this.resultsSection.style.display = 'block';
 
         // Attach event listeners for tooltips
-        attachTooltipListeners();
+        attachTooltipListeners(this.clearOrderProvider);
     }
 
     /**

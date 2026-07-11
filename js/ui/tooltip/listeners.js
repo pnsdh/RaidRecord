@@ -15,6 +15,10 @@ import {
     createWeekTooltipHTML
 } from './content.js';
 
+// Dwell time (ms) the pointer must stay on a WEEK cell before its clear-order
+// lookup fires. Prevents a fast scrub over many rows from firing a request per row.
+const HOVER_FETCH_DELAY_MS = 250;
+
 // Constants for table cell indices
 const CELL_INDICES = {
     RAID: 1,
@@ -36,29 +40,8 @@ const CELL_TOOLTIP_CONFIG = [
         createHTML: (data) => createRaidInfoHTML(JSON.parse(data)),
         requiresTier: false
     },
-    {
-        index: CELL_INDICES.WEEK,
-        dataAttribute: 'data-party',
-        createHTML: (partyData, rowData) => {
-            const partyMembers = JSON.parse(partyData);
-            const hasPartyData = partyMembers && partyMembers.length > 0;
-            const hasWeekWarning = rowData.isWeekAmbiguous && rowData.week > 0;
-
-            // Don't show tooltip if both party data and week warning are missing
-            if (!hasPartyData && !hasWeekWarning) {
-                return null;
-            }
-
-            const weekHTML = createWeekTooltipHTML(rowData.isWeekAmbiguous, rowData.week);
-            const partyHTML = hasPartyData ? createPartyMembersHTML(partyMembers) : '';
-            return weekHTML + partyHTML;
-        },
-        requiresSecondary: true,
-        getSecondaryData: (row) => ({
-            isWeekAmbiguous: row.getAttribute('data-week-ambiguous') === 'true',
-            week: parseInt(row.getAttribute('data-week') || '0')
-        })
-    },
+    // NOTE: The WEEK cell (index 2) is handled separately by attachWeekCellListener
+    // because its party-member tooltip lazily fetches each member's clear order.
     {
         index: CELL_INDICES.DATE,
         dataAttribute: 'data-timestamp',
@@ -166,6 +149,148 @@ function attachHeaderTooltipListeners() {
 }
 
 /**
+ * Build the week-cell tooltip HTML (week-ambiguity warning + party members).
+ * @param {HTMLElement} row
+ * @param {Array} members - Party members (may carry clearOrder)
+ * @param {Object} [opts] - { loadingOrders }
+ * @returns {string|null}
+ */
+function buildWeekTooltipHTML(row, members, opts = {}) {
+    const isWeekAmbiguous = row.getAttribute('data-week-ambiguous') === 'true';
+    const week = parseInt(row.getAttribute('data-week') || '0');
+    const hasParty = members && members.length > 0;
+    const hasWeekWarning = isWeekAmbiguous && week > 0;
+
+    if (!hasParty && !hasWeekWarning) {
+        return null;
+    }
+
+    const weekHTML = createWeekTooltipHTML(isWeekAmbiguous, week);
+    const partyHTML = hasParty ? createPartyMembersHTML(members, { loadingOrders: opts.loadingOrders }) : '';
+    return weekHTML + partyHTML;
+}
+
+/**
+ * Build the clear-order request for a row from its data attributes.
+ */
+function buildOrderRequest(row, members) {
+    let tier = {};
+    try {
+        tier = JSON.parse(row.getAttribute('data-tier') || '{}');
+    } catch {
+        tier = {};
+    }
+
+    const difficulty = tier.type === 'SAVAGE' ? 101 : 100;
+    const anchorTime = Number(row.getAttribute('data-fight-start')) ||
+                       Number(row.getAttribute('data-timestamp')) || null;
+
+    return {
+        encounterId: tier.finalEncounterId,
+        difficulty,
+        partition: tier.partition,
+        anchorTime,
+        reportCode: row.getAttribute('data-report'),
+        fightId: Number(row.getAttribute('data-fight')),
+        members: members.map(m => ({ name: m.name, server: m.server }))
+    };
+}
+
+/**
+ * Attach the WEEK cell tooltip listener, which lazily fetches party members'
+ * clear orders on first hover and caches the result on the row.
+ */
+function attachWeekCellListener(row, tooltip, clearOrderProvider) {
+    const cell = row.querySelector(`td:nth-child(${CELL_INDICES.WEEK})`);
+    if (!cell) return;
+
+    // Timer used to defer the fetch until the pointer dwells on this row
+    let fetchTimer = null;
+
+    // Start the (already-debounced) clear-order fetch for this row
+    const startFetch = (members) => {
+        if (row._clearOrders || row._clearOrdersPending) return;
+
+        row._clearOrdersPending = true;
+        const request = buildOrderRequest(row, members);
+
+        Promise.resolve(clearOrderProvider(request))
+            .then((orders) => {
+                row._clearOrdersPending = false;
+
+                if (orders) {
+                    row._clearOrders = orders;
+                    members.forEach((m, i) => { m.clearOrder = orders[i]; });
+                }
+
+                // Only update if this week cell's tooltip is still the one on screen
+                // (guards against clobbering another cell/row's tooltip shown meanwhile)
+                if (tooltip.style.display === 'block' && tooltip._ownerCell === cell) {
+                    // Re-render with resolved orders (or plainly if the fetch yielded nothing)
+                    tooltip.innerHTML = buildWeekTooltipHTML(row, members);
+                }
+            })
+            .catch(() => {
+                row._clearOrdersPending = false;
+                if (tooltip.style.display === 'block' && tooltip._ownerCell === cell) {
+                    tooltip.innerHTML = buildWeekTooltipHTML(row, members);
+                }
+            });
+    };
+
+    cell.addEventListener('mouseenter', (e) => {
+        let members;
+        try {
+            members = JSON.parse(row.getAttribute('data-party') || '[]');
+        } catch {
+            members = [];
+        }
+
+        // Merge already-cached clear orders, if any
+        if (row._clearOrders) {
+            members.forEach((m, i) => { m.clearOrder = row._clearOrders[i]; });
+        }
+
+        const hasParty = members.length > 0;
+        const canFetch = !!clearOrderProvider && hasParty && !row._clearOrders &&
+                         !!row.getAttribute('data-report') && !!row.getAttribute('data-fight');
+
+        const html = buildWeekTooltipHTML(row, members, { loadingOrders: canFetch });
+        if (!html) return;
+
+        tooltip.innerHTML = html;
+        tooltip.style.display = 'block';
+        tooltip._ownerCell = cell;
+        updateTooltipPosition(e, tooltip);
+
+        if (!canFetch || row._clearOrdersPending) return;
+
+        // Defer the fetch: a quick scrub-through leaves before the timer fires,
+        // so no request is sent for rows the user merely passed over.
+        if (fetchTimer) clearTimeout(fetchTimer);
+        fetchTimer = setTimeout(() => {
+            fetchTimer = null;
+            startFetch(members);
+        }, HOVER_FETCH_DELAY_MS);
+    });
+
+    cell.addEventListener('mousemove', (e) => {
+        if (tooltip.style.display === 'block') {
+            updateTooltipPosition(e, tooltip);
+        }
+    });
+
+    cell.addEventListener('mouseleave', () => {
+        tooltip.style.display = 'none';
+        // Cancel a not-yet-fired fetch when the pointer leaves before dwelling
+        if (fetchTimer) {
+            clearTimeout(fetchTimer);
+            fetchTimer = null;
+        }
+    });
+}
+
+/**
  * Attach cell tooltip listeners for a given row
  */
 function attachCellTooltipListeners(row, tooltip) {
@@ -195,6 +320,8 @@ function attachCellTooltipListeners(row, tooltip) {
 
                 tooltip.innerHTML = html;
                 tooltip.style.display = 'block';
+                // Claim ownership so an in-flight week-cell fetch won't overwrite this
+                tooltip._ownerCell = cell;
                 updateTooltipPosition(e, tooltip);
             } catch (error) {
                 // Silent fail
@@ -230,8 +357,11 @@ function attachRowClickListener(row) {
 
 /**
  * Attach event listeners for tooltips
+ * @param {Function} [clearOrderProvider] - (request) => Promise<Array<number|null>>
+ *   Resolves party members' clear orders for a single tier's clear. When absent,
+ *   the party tooltip still renders, just without clear-order badges.
  */
-export function attachTooltipListeners() {
+export function attachTooltipListeners(clearOrderProvider = null) {
     attachHeaderTooltipListeners();
 
     const rows = document.querySelectorAll('.results-table tbody tr.raid-row');
@@ -248,5 +378,6 @@ export function attachTooltipListeners() {
     rows.forEach(row => {
         attachRowClickListener(row);
         attachCellTooltipListeners(row, tooltip);
+        attachWeekCellListener(row, tooltip, clearOrderProvider);
     });
 }
