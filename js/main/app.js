@@ -226,6 +226,7 @@ export class App {
 
         // No server specified, check all servers
         const serverExistsMap = await this.checkCharacterOnServers(characterName);
+        if (!serverExistsMap) return;
 
         // Get list of servers where character exists
         const existingServers = Object.entries(serverExistsMap)
@@ -286,7 +287,8 @@ export class App {
      * Check if character exists on servers
      * @param {string} characterName - Character name
      * @param {string} excludeServer - Server to exclude from search (optional)
-     * @returns {Object} Map of server -> characterId (or null if not found)
+     * @returns {Object|null} Map of server -> characterId (or null if not found),
+     *   or null if the lookup itself failed (error already shown)
      */
     async checkCharacterOnServers(characterName, excludeServer = null) {
         try {
@@ -306,9 +308,11 @@ export class App {
             this.updateApiUsage();
 
             return result;
-        } catch {
-            // If batch search fails, return empty map
-            return {};
+        } catch (error) {
+            // Surface the real cause (auth/network) instead of reporting "not found"
+            this.ui.showError(error.message || MESSAGES.SEARCH.SEARCH_ERROR);
+            this.updateApiUsage();
+            return null;
         }
     }
 
@@ -347,6 +351,7 @@ export class App {
      */
     async handleEmptyResults(characterName, serverName, searchInput) {
         const serverExistsMap = await this.checkCharacterOnServers(characterName, serverName);
+        if (!serverExistsMap) return true;
         return this.showServerSelectionDialog(characterName, searchInput, 'noRecords', serverName, serverExistsMap);
     }
 
@@ -356,6 +361,7 @@ export class App {
      */
     async handleCharacterNotFound(characterName, serverName, searchInput) {
         const serverExistsMap = await this.checkCharacterOnServers(characterName, serverName);
+        if (!serverExistsMap) return true;
 
         // Check if character exists on any other server
         const existsOnOtherServer = Object.values(serverExistsMap).some(id => id);

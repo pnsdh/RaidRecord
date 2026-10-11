@@ -32,7 +32,8 @@ export const MESSAGES = {
             `필요: 약 ${required} 포인트\n` +
             `남은 포인트: ${remaining} 포인트\n` +
             `${resetMinutes}분 후 리셋됩니다. 잠시 후 다시 시도해주세요.`,
-        RESET_TIME: (minutes) => `(${minutes}분 후 리셋)`
+        RESET_TIME: (minutes) => `(${minutes}분 후 리셋)`,
+        AUTH_FAILED: 'FFLogs API 인증에 실패했습니다. 설정에서 Client ID와 Client Secret을 확인해주세요.'
     },
 
     // Settings related

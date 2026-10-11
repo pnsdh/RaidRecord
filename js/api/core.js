@@ -4,13 +4,14 @@
 
 import { API_CONFIG, TIMING } from '../config/config.js';
 import { getJobFromSpecId as mapJobFromSpecId } from '../config/jobs.js';
+import { MESSAGES } from '../config/messages.js';
 import { AppError, ErrorCodes } from '../errors.js';
 
 export class FFLogsAPICore {
     /**
      * @param {string} clientId - FFLogs API client ID
      * @param {string} clientSecret - FFLogs API client secret
-     * @param {Object} tokenStorage - Token storage interface with getToken, saveToken, getExpiry, saveExpiry
+     * @param {Object} tokenStorage - Token storage interface with getToken, saveToken, getExpiry, saveExpiry, clearToken
      */
     constructor(clientId, clientSecret, tokenStorage) {
         this.clientId = clientId;
@@ -53,7 +54,7 @@ export class FFLogsAPICore {
         });
 
         if (!response.ok) {
-            throw new AppError('Failed to obtain access token. Check your API credentials.', ErrorCodes.AUTH_ERROR);
+            throw new AppError(MESSAGES.API.AUTH_FAILED, ErrorCodes.AUTH_ERROR);
         }
 
         const data = await response.json();
@@ -71,8 +72,9 @@ export class FFLogsAPICore {
 
     /**
      * Execute a GraphQL query
+     * @param {boolean} isRetry - Internal: set on the single retry after a 401
      */
-    async query(queryString, variables = {}, includeRateLimit = false) {
+    async query(queryString, variables = {}, includeRateLimit = false, isRetry = false) {
         const token = await this.getAccessToken();
 
         // Add rate limit data to query if requested
@@ -100,6 +102,16 @@ export class FFLogsAPICore {
                 variables
             })
         });
+
+        // Cached token was revoked (e.g. API client deleted/regenerated):
+        // drop it and retry once with a freshly issued token
+        if (response.status === 401) {
+            this.tokenStorage.clearToken();
+            if (!isRetry) {
+                return this.query(queryString, variables, includeRateLimit, true);
+            }
+            throw new AppError(MESSAGES.API.AUTH_FAILED, ErrorCodes.AUTH_ERROR);
+        }
 
         if (!response.ok) {
             throw new AppError(`API query failed: ${response.statusText}`, ErrorCodes.NETWORK_ERROR);

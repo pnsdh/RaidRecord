@@ -51,6 +51,14 @@ export class StorageService {
         this.set(key, JSON.stringify(value));
     }
 
+    /**
+     * Remove a value from storage
+     * @param {string} key - Key from STORAGE_KEYS
+     */
+    static remove(key) {
+        localStorage.removeItem(STORAGE_KEYS[key]);
+    }
+
     // Domain-specific methods
 
     /**
@@ -72,6 +80,8 @@ export class StorageService {
     static saveCredentials(clientId, clientSecret) {
         this.set('CLIENT_ID', clientId);
         this.set('CLIENT_SECRET', clientSecret);
+        // Token issued for the previous credentials must not be reused
+        this.clearAccessToken();
     }
 
     /**
@@ -154,6 +164,14 @@ export class StorageService {
     static saveTokenExpiry(expiry) {
         this.set('TOKEN_EXPIRY', expiry.toString());
     }
+
+    /**
+     * Clear cached access token and its expiry
+     */
+    static clearAccessToken() {
+        this.remove('ACCESS_TOKEN');
+        this.remove('TOKEN_EXPIRY');
+    }
 }
 
 /**
@@ -163,7 +181,8 @@ const TokenStorage = {
     getToken: () => StorageService.getAccessToken(),
     saveToken: (token) => StorageService.saveAccessToken(token),
     getExpiry: () => StorageService.getTokenExpiry(),
-    saveExpiry: (expiry) => StorageService.saveTokenExpiry(expiry)
+    saveExpiry: (expiry) => StorageService.saveTokenExpiry(expiry),
+    clearToken: () => StorageService.clearAccessToken()
 };
 
 /**
